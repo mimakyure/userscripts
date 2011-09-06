@@ -3,9 +3,14 @@
 // @namespace      http://google.reader.colorful.list.view/kepp
 // @include        http://www.google.com/reader/*
 // @include        https://www.google.com/reader/*
+// @include        http://www.google.tld/reader/*
+// @include        https://www.google.tld/reader/*
 // @include        http://userscripts.org/scripts/source/8782.meta.js
-// @description    Colorizes the item headers in Google Reader list view and the entries in expanded view.
-// @version        20110216
+// @description    Colors items in Google Reader.
+// @author         kepp
+// @jsversion      1.6
+// @updateURL      http://userscripts.org/scripts/source/8782.meta.js
+// @version        20110227
 // ==/UserScript==
 
 
