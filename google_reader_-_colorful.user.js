@@ -7,13 +7,15 @@
 // @description    Colorizes the item headers in Google Reader list view and the entries in expanded view.
 // @version        20110216
 // ==/UserScript==
-/*jslint browser: true, forin: true */
-/*globals XPathResult, GM_getValue, GM_setValue, localStorage, unescape,
-frameElement */
 
-"use strict";
 
 /**
+ * Remove JSLint config sections and other testing leftovers.
+ * Remove $id shortcut function. Inline function.
+ * Remove $x shortcut function. Replace by getElementById/ClassName.
+ *   $xa shortcut function to be removed separately.
+ * Change test for undefined to use "void 0".
+ **
  * 20110227
  * Update for Greasemonkey 9.0 compatibility
  **
@@ -74,8 +76,6 @@ frameElement */
  *   list.
  **/
 
-// var script = document.createElement("script");
-// script.innerHTML = "(" + 
 ( function() {
 
   // info used to check for script updates
@@ -154,10 +154,6 @@ frameElement */
 
 //=============================================================================
 
-
-  function $id( id ) {
-    return document.getElementById( id );
-  }
 
   function $x( query, context ) {
     var doc = ( context ) ? context.ownerDocument : document;
@@ -243,7 +239,7 @@ frameElement */
 
     getItem: function( name, def ) {
       var cookieVal = this.cookie[ name ];
-      return ( typeof cookieVal == "undefined" ) ? def : cookieVal;
+      return cookieVal === void 0 ? def : cookieVal;
     },
 
     setItem: function( name, value ) {
@@ -370,7 +366,7 @@ frameElement */
                             "padding-left: 0;\">" +
                        "</ul></div>";
 
-      $id( "setting-extras-body" ).appendChild( sect );
+      document.getElementById( "setting-extras-body" ).appendChild( sect );
 
       var lists = sect.getElementsByTagName( "ul" );
       var list1 = lists[ 1 ], list2 = lists[ 0 ];
@@ -389,7 +385,7 @@ frameElement */
 
     addColorPref: function ( list, id, text, handler, def ) {
       var pref = document.createElement( "li" );
-      var selected = storage.getItem( id, ( typeof def == "undefined" ) ?
+      var selected = storage.getItem( id, def === void 0 ?
                                           1 : def );
       pref.innerHTML = "<label><input id=\"" + id + "\" type=\"checkbox\"/>" +
                        text + "</label>";
@@ -423,8 +419,8 @@ frameElement */
 
     setMessage: function( id, msg ) {
       clearTimeout( this.timeoutID );
-      var inner = $x( "id( 'message-area-inner' )" );
-      var outer = $x( "id( 'message-area-outer' )" );
+      var inner = document.getElementById( "message-area-inner" );
+      var outer = document.getElementById( "message-area-outer" );
 
       // get the message string to insert into the page
       var type = ( id == "gm-color-lv" ) ? STRINGS.msgList :
@@ -495,7 +491,7 @@ frameElement */
     setup: function() { // initial setup and toggling of settings
       this.initConfig(); // put this in here so theme scripts run first
       var prefs = this.prefs;
-      var entries = $id( "entries" );
+      var entries = document.getElementById( "entries" );
 
       if ( entries ) {
         entries.className = prefs + entries.className; 
@@ -506,7 +502,7 @@ frameElement */
 
     // determine what color theme to use by looking at the header colors
     initConfig: function() {
-      var header = $id("chrome-header");
+      var header = document.getElementById( "chrome-header" );
       var bg = getComputedStyle( header, null)
                .getPropertyValue( "background-color" );
 
@@ -621,18 +617,14 @@ frameElement */
     },
 
     setColor: function( styles, bgColor, nc ) {
-
-      // source in header is: "<a>" for expanded/comment view
-      //                      "<span>" for list view
-      // if "Shared by [xxx]" is there this will grab that
+alert(setColor);
       // search for a node that has 'entry-source-title' class name
-      var src = $x( ".//*[ contains(" +
-                    "concat( ' ', normalize-space( @class ), ' ')," +
-                    "' entry-source-title ' ) ]", nc );
-      src = src.textContent.replace( /\W/g, "-" );
+      var title = nc.getElementsByClassName( "entry-source-title" )[ 0 ].
+                  textContent.replace( /\W/g, "-" );
+console.log(title);
 
-      nc.setAttribute( "colored", src );
-      if ( typeof this.colors[ src ] == "undefined" ) {
+      nc.setAttribute( "colored", title );
+      if ( this.colors[ title ] === void 0 ) {
         styles.textContent += this.getColorCss( src, bgColor );
       }
     },
@@ -769,7 +761,7 @@ frameElement */
 
 
   ( function() {
-    var chrome = $id( "chrome" );
+    var chrome = document.getElementById( "chrome" );
     storage.init();
 
     if ( chrome ) {
@@ -788,7 +780,3 @@ frameElement */
   }() );
 
 }() );
-
-// .toString() + ")();";
-
-// document.body.appendChild(script);
