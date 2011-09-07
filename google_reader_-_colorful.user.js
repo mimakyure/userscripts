@@ -20,6 +20,7 @@
  * Remove $x shortcut function. Replace with getElementById/ClassName.
  * Remove $xa shortcut function. Replace with getElementsByClassName NodeList.
  * Change test for undefined to use "void 0".
+ * Change base css from global variable to theme controller object property.
  **
  * 20110227
  * Update for Greasemonkey 9.0 compatibility
@@ -149,8 +150,8 @@
     init: function() { // initialize methods for data storage access
       // Google Chrome dev channel stubs GM_ functions with error messages
       // test it's the real deal by looking for "arguments"
-      if ( typeof GM_getValue != "undefined" &&
-           typeof GM_getValue.toString != "undefined" &&
+      if ( GM_getValue !== void 0 &&
+           GM_getValue.toString !== void 0 &&
            (/arguments/).test( GM_getValue.toString() ) ) {
         this.getItem = GM_getValue;
         this.setItem = GM_setValue;
@@ -160,7 +161,7 @@
       // Google Chrome gives null for localStorage if not enabled,
       // Opera gives undefined
       // http://www.w3.org/TR/webstorage/#the-storage-interface
-      if ( typeof localStorage != "undefined" && localStorage !== null ) {
+      if ( localStorage !== void 0 && localStorage !== null ) {
 
         this.getItem = function( key, def ) {
           var value = localStorage.getItem( key );
