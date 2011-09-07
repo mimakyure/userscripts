@@ -17,8 +17,8 @@
 /**
  * Remove JSLint config sections and other testing leftovers.
  * Remove $id shortcut function. Inline function.
- * Remove $x shortcut function. Replace by getElementById/ClassName.
- *   $xa shortcut function to be removed separately. Will be more work.
+ * Remove $x shortcut function. Replace with getElementById/ClassName.
+ * Remove $xa shortcut function. Replace with getElementsByClassName NodeList.
  * Change test for undefined to use "void 0".
  **
  * 20110227
@@ -159,17 +159,6 @@
 
 //=============================================================================
 
-
-  function $xa( query ) {
-    var res = document.evaluate( query, document, null,
-              XPathResult.UNORDERED_NODE_ITERATOR_TYPE, null );
-    var element, array = [];
-    while ( ( element = res.iterateNext() ) ) {
-      array.push( element );
-    }
-
-    return array;
-  }
 
   function addStyle( css ) {
     var style = document.createElement( "style" );
@@ -495,6 +484,7 @@
         entries.className = prefs + entries.className; 
         entries.addEventListener( "DOMNodeInserted",
                                   bind( this.process, this ), false );
+        this.entries = entries.getElementsByClassName( "entry" );
       }
     },
 
@@ -602,14 +592,16 @@
       var thm = this;
 
       // pick up all uncolored entries, including ones missed previously
-      var nocolor = $xa( "id( 'entries' )/div[ contains( @class, 'entry' ) ]" +
-                         "[ not( @colored ) ]" );
+      var noColor = Array.prototype.slice.apply( this.entries );
+      noColor = noColor.filter(function( entry ) {
+                  return !entry.hasAttribute( "colored" );
+                } );
 
-      if ( !nocolor.length ) {
+      if ( !noColor.length ) {
         return;
       }
 
-      nocolor.forEach( function( nc ) {
+      noColor.forEach( function( nc ) {
         thm.setColor( styles, bgColor, nc );
       } );
     },
