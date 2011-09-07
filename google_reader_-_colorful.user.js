@@ -91,45 +91,6 @@
     installUrl: "http://userscripts.org/scripts/source/8782.user.js"
   };
 
-  // CSS to allow items to be colored
-  var BASE_CSS = "" +
-    "#entries .entry-likers, /* like count */" +
-    "#entries.list .collapsed .entry-source-title," +
-    "#entries.list .collapsed .entry-secondary," +
-    "#entries.list .collapsed .entry-title," +
-    "#entries.comment-cards .entry-comments {" +
-    "  background-color: transparent !important;" +
-    "}" +
-    ".gm-color-lv .collapsed, /* list view headers */" +
-    "#entries.comment-cards .entry .comment-entry /* comment view */ {" +
-    "  border-color: transparent !important;" +
-    "}" +
-    "#entries.list.gm-color-lv #current-entry .collapsed {" +
-    "  border: 2px solid #8181DC !important;" +
-    "}" +
-    "#entries.list.gm-color-lv #current-entry.expanded .collapsed {" +
-    "  border-bottom-color: transparent !important;" +
-    "  border-width: 2px 0 !important;" +
-    "}" +
-    "#entries .entry {" +
-    "  padding: 5px 0;" +
-    "}" +
-    "#entries.list .collapsed {" +
-    "  line-height: 2.4ex !important; /* hide entry snippet 2nd line */" +
-    "}" +
-    "#entries .collapsed .entry-original," +
-    ".entry .entry-title .entry-title-go-to { /* article link image */" +
-    "  background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAA" +
-    "AOBAMAAADtZjDiAAAALVBMVEX////R3fPm6/nJ1PPV3vXc5fbCz/He5fjCz/H////U3/Tj6" +
-    "fjr7/r3+f3O2fTPDCQ+AAAAB3RSTlMA71DmxK0A9H5uGAAAAFtJREFUeF41jbEJgEAUQx+C" +
-    "G1hYCm4gOICdpeACh5sIwk+jAxw3yI3iOY0I/jSBkLxANanpgFXSCLU+LfSWLWtgtmRJB+1" +
-    "VnnLvSGc8o9w9957vnPNzA2zfT3gBaL8sJRF+PgoAAAAASUVORK5CYII=')" +
-    "  no-repeat !important;" +
-    "}" +
-    ".entry .entry-title .entry-title-go-to {" +
-    "  background-position: left 3px !important;" +
-    "}";
-
   var STRINGS = {
     // pref labels
     color:       "Color these items:",
@@ -462,8 +423,49 @@
     bgColor: null, // theme settings
     textColor: null,
     styles: null, // dom node colorizing css will be injected into
+    entries: null, // NodeList of entries in reading list
+
+    // CSS to allow items to be colored
+    baseCss: "/* css to allow colors to apply */" +
+      "#entries .entry-likers, /* like count */" +
+      "#entries.list .collapsed .entry-source-title," +
+      "#entries.list .collapsed .entry-secondary," +
+      "#entries.list .collapsed .entry-title," +
+      "#entries.comment-cards .entry-comments {" +
+      "  background-color: transparent !important;" +
+      "}" +
+      ".gm-color-lv .collapsed, /* list view headers */" +
+      "#entries.comment-cards .entry .comment-entry /* comment view */ {" +
+      "  border-color: transparent !important;" +
+      "}" +
+      "#entries.list.gm-color-lv #current-entry .collapsed {" +
+      "  border: 2px solid #8181DC !important;" +
+      "}" +
+      "#entries.list.gm-color-lv #current-entry.expanded .collapsed {" +
+      "  border-bottom-color: transparent !important;" +
+      "  border-width: 2px 0 !important;" +
+      "}" +
+      "#entries .entry {" +
+      "  padding: 5px 0;" +
+      "}" +
+      "#entries.list .collapsed {" +
+      "  line-height: 2.4ex !important; /* hide entry snippet 2nd line */" +
+      "}" +
+      "#entries .collapsed .entry-original," +
+      ".entry .entry-title .entry-title-go-to { /* article link image */" +
+      "  background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4A" +
+      "AAAOBAMAAADtZjDiAAAALVBMVEX////R3fPm6/nJ1PPV3vXc5fbCz/He5fjCz/H////U3" +
+      "/Tj6fjr7/r3+f3O2fTPDCQ+AAAAB3RSTlMA71DmxK0A9H5uGAAAAFtJREFUeF41jbEJgE" +
+      "AUQx+CG1hYCm4gOICdpeACh5sIwk+jAxw3yI3iOY0I/jSBkLxANanpgFXSCLU+LfSWLWt" +
+      "gtmRJB+1VnnLvSGc8o9w9957vnPNzA2zfT3gBaL8sJRF+PgoAAAAASUVORK5CYII=')" +
+      "  no-repeat !important;" +
+      "}" +
+      ".entry .entry-title .entry-title-go-to {" +
+      "  background-position: left 3px !important;" +
+      "}",
 
     init: function( chrome ) {
+      addStyle( this.baseCss );
       this.styles = addStyle("/* css to color entries */");
       this.prefs = settings.getColorPrefs();
 
@@ -766,7 +768,6 @@
       settings.init();
     }
 
-    addStyle( BASE_CSS );
   }() );
 
 }() );
