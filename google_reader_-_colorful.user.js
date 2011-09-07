@@ -144,19 +144,50 @@
 
 
   // provide local data storage
-  var storage = {
+  // use cookies by default and override with GM_* or localStorage if available
+  storage = {
     cookie: {},
 
     init: function() { // initialize methods for data storage access
-      // Google Chrome dev channel stubs GM_ functions with error messages
-      // test it's the real deal by looking for "arguments"
-      if ( GM_getValue !== void 0 &&
-           GM_getValue.toString !== void 0 &&
-           (/arguments/).test( GM_getValue.toString() ) ) {
-        this.getItem = GM_getValue;
-        this.setItem = GM_setValue;
+      var pairs = {};
+
+      if ( this.testGMStorage() || this.testDOMStorage() ) {
         return;
       }
+
+      if ( /gm-color=([\w-:]+);/.test( unescape( document.cookie ) ) ) {
+        var cookie = RegExp.$1;
+
+        cookie.split( "/" ).forEach( function( pair ) {
+          var set = pair.split( ":" );
+          pairs[ set[ 0 ] ] = set[ 1 ];
+        } );
+      }
+
+      this.cookie = pairs;
+    },
+
+    testGMStorage: function() {
+
+      // test for existance of GM_setValue and GM_getValue
+      // Google Chrome stubs these functions with 'not supported' messages
+      if ( typeof GM_getValue === "function" &&
+           typeof GM_setValue === "function" ) {
+        GM_setValue( "test", "test value" );
+
+        if ( GM_getValue( "test" ) === "test value" ) {
+          if ( typeof GM_deleteValue === "function" ) {
+            GM_deleteValue( "test" );
+          }
+        this.getItem = GM_getValue;
+        this.setItem = GM_setValue;
+          return true;
+      }
+      }
+
+    },
+
+    testDOMStorage: function() {
 
       // Google Chrome gives null for localStorage if not enabled,
       // Opera gives undefined
@@ -173,18 +204,6 @@
         };
         return;
       }
-
-      var pairs = {};
-      if ( /gm-color=([^;]*)/.test( unescape( document.cookie ) ) ) {
-        var cookie = RegExp.$1;
-
-        cookie.split( "/" ).forEach( function( pair ) {
-          var set = pair.split( ":" );
-          pairs[ set[ 0 ] ] = set[ 1 ];
-        } );
-      }
-
-      this.cookie = pairs;
     },
 
     getItem: function( name, def ) {
