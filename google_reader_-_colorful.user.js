@@ -23,6 +23,7 @@
  * Change base css from global variable to theme controller object property.
  * Reorgaize storage code and change tests for GM and DOM Stroage.
  * Update string property names to be more consistent, maybe.
+ * Use strict equality operators for everything.
  **
  * 20110227
  * Update for Greasemonkey 9.0 compatibility
@@ -241,7 +242,7 @@
       }
 
       // test if this is the script meta info page that loaded
-      if ( location.href == SCRIPT_INFO.updateUrl ) {
+      if ( location.href === SCRIPT_INFO.updateUrl ) {
         // running on userscripts.org domain
 
         document.body.setAttribute( "style",
@@ -392,12 +393,12 @@
       var outer = document.getElementById( "message-area-outer" );
 
       // get the message string to insert into the page
-      var type = ( id == "gm-color-lv" ) ? STRINGS.lvMsg :
-                 ( id == "gm-color-ev" ) ? STRINGS.evMsg :
-                 ( id == "gm-color-ef" ) ? STRINGS.efMsg :
-                 ( id == "gm-color-ui" ) ? STRINGS.uiMsg :
-                 ( id == "gm-color-ri" ) ? STRINGS.riMsg : 
-                 ( id == "gm-color-cv" ) ? STRINGS.cvMsg :
+      var type = ( id === "gm-color-lv" ) ? STRINGS.lvMsg :
+                 ( id === "gm-color-ev" ) ? STRINGS.evMsg :
+                 ( id === "gm-color-ef" ) ? STRINGS.efMsg :
+                 ( id === "gm-color-ui" ) ? STRINGS.uiMsg :
+                 ( id === "gm-color-ri" ) ? STRINGS.riMsg : 
+                 ( id === "gm-color-cv" ) ? STRINGS.cvMsg :
                  STRINGS.udMsg;
 
       var newMsg = type + msg + STRINGS.colorMsg; 
@@ -415,7 +416,7 @@
 
         // test if the same message is still showing.
         // force lowercase to handle any (tag name) capitalization change
-        if ( inner.innerHTML.toLowerCase() == newMsg.toLowerCase() ) {
+        if ( inner.innerHTML.toLowerCase() === newMsg.toLowerCase() ) {
           outer.className = outer.className.replace( / hidden|$/, " hidden" );
         }
 
