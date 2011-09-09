@@ -21,6 +21,7 @@
  * Remove $xa shortcut function. Replace with getElementsByClassName NodeList.
  * Change test for undefined to use "void 0".
  * Change base css from global variable to theme controller object property.
+ * Reorgaize storage code and change tests for GM and DOM Stroage.
  **
  * 20110227
  * Update for Greasemonkey 9.0 compatibility
