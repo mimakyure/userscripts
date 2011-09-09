@@ -22,6 +22,7 @@
  * Change test for undefined to use "void 0".
  * Change base css from global variable to theme controller object property.
  * Reorgaize storage code and change tests for GM and DOM Stroage.
+ * Update string property names to be more consistent, maybe.
  **
  * 20110227
  * Update for Greasemonkey 9.0 compatibility
@@ -95,28 +96,27 @@
 
   var STRINGS = {
     // pref labels
-    color:       "Color these items:",
-    list:        "List view headers.",
-    expanded:    "Expanded view entry bodies.",
-    frame:       "Expanded view entry frames.",
-    comment:     "Comment view entries.",
-    read:        "Read items.",
-    unread:      "Unread items.",
+    colorLbl:   "Color these items:",
+    lvLbl:      "List view headers.",
+    evLbl:      "Expanded view entry bodies.",
+    efLbl:      "Expanded view entry frames.",
+    cvLbl:      "Comment view entries.",
+    riLbl:      "Read items.",
+    uiLbl:      "Unread items.",
+    updateLbl:  "Userscript Update Available",
+    installLbl: "Install"
 
     // pref messages
-    msgWill:     "will",
-    msgWillNot:  "will not",
-    msgColored:  " be colored.",
-    msgList:     "List view items ",
-    msgExpanded: "Expanded view entry bodies ",
-    msgFrame:    "Expanded view entry frames ",
-    msgComment:  "Comment view items ",
-    msgUnread:   "Unread items ",
-    msgRead:     "Read items ",
-    msgUndef:    "Undefined",
-    
-    update:      "Userscript Update Available",
-    install:     "Install"
+    setMsg:     "will",
+    unsetMsg:   "will not",
+    colorMsg: " be colored.",
+    lvMsg:      "List view items ",
+    evMsg:      "Expanded view entry bodies ",
+    efMsg:      "Expanded view entry frames ",
+    cvMsg:      "Comment view items ",
+    uiMsg:      "Unread items ",
+    riMsg:      "Read items ",
+    udMsg:      "Undefined",
   };
 
 
@@ -276,8 +276,8 @@
         location.href = "data:text/html," +
           "<style>body{ visibility: visible; overflow: hidden;" +
           "font-family: Arial, sans-serif; color: #2244BB; }</style>" +
-          STRINGS.update + ": <a href=\"" + url + "\" target=\"_blank\">" +
-          STRINGS.install + "</a>";
+          STRINGS.updateLbl + ": <a href=\"" + url + "\" target=\"_blank\">" +
+          STRINGS.installLbl + "</a>";
       }
     },
 
@@ -327,7 +327,7 @@
 
       // two column list
       sect.innerHTML = "<div class=\"extra-header\">Colors</div>" +
-                       STRINGS.color + "<div style=\"width: 30em;" +
+                       STRINGS.colorLbl + "<div style=\"width: 30em;" +
                                              "margin: 0pt 0pt 1em 1em;\">" +
                        "<ul style=\"list-style-type: none; padding-left: 0;" +
                             "float: right;\">" +
@@ -343,12 +343,12 @@
 
       var tc = bind( this.toggleColors, this );
 
-      this.addColorPref( list2, "gm-color-ri", STRINGS.read, tc );
-      this.addColorPref( list2, "gm-color-ui", STRINGS.unread, tc );
-      this.addColorPref( list1, "gm-color-lv", STRINGS.list, tc );
-      this.addColorPref( list1, "gm-color-ev", STRINGS.expanded, tc );
-      this.addColorPref( list1, "gm-color-ef", STRINGS.frame, tc, 0 );
-      this.addColorPref( list1, "gm-color-cv", STRINGS.comment, tc, 0 );
+      this.addColorPref( list2, "gm-color-ri", STRINGS.riLbl, tc );
+      this.addColorPref( list2, "gm-color-ui", STRINGS.uiLbl, tc );
+      this.addColorPref( list1, "gm-color-lv", STRINGS.lvLbl, tc );
+      this.addColorPref( list1, "gm-color-ev", STRINGS.evLbl, tc );
+      this.addColorPref( list1, "gm-color-ef", STRINGS.efLbl, tc, 0 );
+      this.addColorPref( list1, "gm-color-cv", STRINGS.cvLbl, tc, 0 );
 
       return sect;
     },
@@ -374,10 +374,10 @@
       if ( curr ) {
         newPref = id;
         cName = id + " ";
-        msg = "<em>" + STRINGS.msgWill + "</em>";
+        msg = "<em>" + STRINGS.setMsg + "</em>";
       }
       else {
-        msg = "<em>" + STRINGS.msgWillNot + "</em>";
+        msg = "<em>" + STRINGS.unsetMsg + "</em>";
       }
 
       var re = new RegExp( id + " |^", "g" );
@@ -392,15 +392,15 @@
       var outer = document.getElementById( "message-area-outer" );
 
       // get the message string to insert into the page
-      var type = ( id == "gm-color-lv" ) ? STRINGS.msgList :
-                 ( id == "gm-color-ev" ) ? STRINGS.msgExpanded :
-                 ( id == "gm-color-ef" ) ? STRINGS.msgFrame :
-                 ( id == "gm-color-ui" ) ? STRINGS.msgUnread :
-                 ( id == "gm-color-ri" ) ? STRINGS.msgRead : 
-                 ( id == "gm-color-cv" ) ? STRINGS.msgComment :
-                 STRINGS.msgUndef;
+      var type = ( id == "gm-color-lv" ) ? STRINGS.lvMsg :
+                 ( id == "gm-color-ev" ) ? STRINGS.evMsg :
+                 ( id == "gm-color-ef" ) ? STRINGS.efMsg :
+                 ( id == "gm-color-ui" ) ? STRINGS.uiMsg :
+                 ( id == "gm-color-ri" ) ? STRINGS.riMsg : 
+                 ( id == "gm-color-cv" ) ? STRINGS.cvMsg :
+                 STRINGS.udMsg;
 
-      var newMsg = type + msg + STRINGS.msgColored; 
+      var newMsg = type + msg + STRINGS.colorMsg; 
       inner.innerHTML = newMsg; // set the message
       
       // force display and set position and width
