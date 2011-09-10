@@ -28,6 +28,7 @@
  * Don't run in sharing bookmarklet popup iframe.
  * Simplify hue calculation process.
  * Clean up rgb color parsing.
+ * Simplify hsl color calculation.
  **
  * 20110227
  * Update for Greasemonkey 9.0 compatibility
@@ -518,20 +519,17 @@
 
     // determine what color theme to use by looking at the header colors
     initConfig: function() {
-      var header = document.getElementById("chrome-header");
-      var bg = getComputedStyle( header, null)
-               .getPropertyValue( "background-color" );
+      var style = getComputedStyle(
+                  document.getElementById("chrome-header"), null );
+      var bg = this.rgbToHsl( style.getPropertyValue( "background-color" ) );
 
-      bg = this.rgbToHsl( bg );
-
-      // a min saturation & lightness is needed to distinguish colors
-      // note: value is further subtracted from this for read items
+      // a min saturation & lightness is needed to distinguish colors.
+      // for read items, a value is further subtracted from these
       this.bgColor = { hue: bg[ 0 ],
                        sat: Math.max( bg[ 1 ], 35 ),
                        lt: Math.max( bg[ 2 ], 32 ) };
 
-      var color = getComputedStyle( header, null ).getPropertyValue( "color" );
-      color = this.rgbToHsl( color );
+      var color = this.rgbToHsl( style.getPropertyValue( "color" ) );
       this.textColor = { hue: color[ 0 ], sat: color[ 1 ], lt: color[ 2 ] };
       this.setTextColor();
     },
@@ -548,10 +546,10 @@
       rgb.splice( index, 1 );
 
       lt = ( max + min )/2;
-      if ( chroma ) {
-        sat = ( lt > 0.5 ) ? ( max - min )/( 2 - ( max + min ) ) :
-                             ( max - min )/( max + min );
-        hue = 60*( ( rgb[ 0 ] - rgb[ 1 ] )/( max - min ) + index*2 );
+      if ( chroma ) { // max not equal to min
+        sat = ( lt > 0.5 ) ? ( chroma )/( 2 - ( max + min ) ) :
+                             ( chroma )/( max + min );
+        hue = 60*( ( rgb[ 0 ] - rgb[ 1 ] )/( chroma ) + index*2 );
       }
 
       return [ hue, sat*100, lt*100 ];
