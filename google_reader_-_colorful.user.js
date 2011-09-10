@@ -30,6 +30,7 @@
  * Clean up rgb color parsing.
  * Simplify hsl color calculation.
  * Move script info from global variable to property of updater.
+ * Use decode/encodeURIComponent instead of un/escape for cookies.
  **
  * 20110227
  * Update for Greasemonkey 9.0 compatibility
@@ -155,7 +156,8 @@
         return;
       }
 
-      if ( /gm-color=([\w-:]+);/.test( unescape( document.cookie ) ) ) {
+      var cookie = decodeURIComponent( document.cookie );
+      if ( /gm-color=([\w-:]+);/.test( cookie ) ) {
         var cookie = RegExp.$1;
 
         cookie.split( "/" ).forEach( function( pair ) {
@@ -222,7 +224,7 @@
       var future = new Date( ( new Date().getTime() + 10*365*24*60*60*1000 ) );
       strCookie += ";path=/reader;expires=" + future.toGMTString();
 
-      document.cookie = strCookie;
+      document.cookie = encodeURIComponent( strCookie );
     }
   };
 
