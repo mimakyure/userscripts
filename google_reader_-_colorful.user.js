@@ -27,6 +27,7 @@
  * Use stricter version parsing regular expression in updater.
  * Don't run in sharing bookmarklet popup iframe.
  * Simplify hue calculation process.
+ * Clean up rgb color parsing.
  **
  * 20110227
  * Update for Greasemonkey 9.0 compatibility
@@ -558,19 +559,19 @@
 
     getRgb: function( color ) {
       var rgb;
+      var hexRegExp = /#([A-Fa-f0-9]{2})([A-Fa-f0-9]{2})([A-Fa-f0-9]{2})/;
 
-      if ( ( rgb = /(\d+), (\d+), (\d+)/.exec( color ) ) ) {
-        rgb = rgb.slice( 1 );
-        return [ rgb[ 0 ]/255, rgb[ 1 ]/255, rgb[ 2 ]/255 ];
+      if ( /(\d+), (\d+), (\d+)/.test( color ) ) {
+        return [ RegExp.$1/255, RegExp.$2/255, RegExp.$3/255 ];
       }
 
-      // Opera return a hex value, so convert hex to decimal
-      if ( ( rgb = /#(......)/.exec( color ) ) ) {
-        rgb = parseInt( rgb[ 1 ], 16 );
-        var red = rgb >> 16;
-        var grn = ( rgb - ( red << 16 ) ) >> 8;
-        var blu = rgb - ( red << 16 ) - ( grn << 8 );
-        return [ red/255, grn/255, blu/255 ];
+      // Opera returns a hex value, so convert hex to decimal
+      if ( hexRegExp.test( color ) ) {
+        var red = parseInt( RegExp.$1, 16 );
+        var green = parseInt( RegExp.$2, 16 );
+        var blue = parseInt( RegExp.$3, 16 );
+
+        return [ red/255, green/255, blue/255 ];
       }
 
       return [ 1, 0, 0 ];
@@ -629,14 +630,13 @@
       }
 
       noColor.forEach( function( nc ) {
-        thm.setColor( styles, bgColor, nc );
+        thm.setColors( styles, bgColor, nc );
       } );
     },
 
-    setColor: function( styles, bgColor, nc ) {
+    setColors: function( styles, bgColor, nc ) {
 
       // search for a node that has 'entry-source-title' class name
-
       var title = nc.getElementsByClassName( "entry-source-title" )[ 0 ].
                   textContent.replace( /\W/g, "-" );
 
