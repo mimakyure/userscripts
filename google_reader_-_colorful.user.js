@@ -106,7 +106,7 @@
     riLbl:      "Read items.",
     uiLbl:      "Unread items.",
     updateLbl:  "Userscript Update Available",
-    installLbl: "Install"
+    installLbl: "Install",
 
     // pref messages
     setMsg:     "will",
