@@ -25,6 +25,7 @@
  * Update string property names to be more consistent, maybe.
  * Use strict equality operators for everything.
  * Use stricter version parsing regular expression in updater.
+ * Don't run in sharing bookmarklet popup iframe.
  **
  * 20110227
  * Update for Greasemonkey 9.0 compatibility
@@ -776,6 +777,12 @@
 
 
   ( function() {
+
+    // test if this is a google reader sharing bookmarklet popup
+    if ( location.href.search( "link-frame" ) >= 0 ) {
+      return;
+    }
+
     var chrome = document.getElementById( "chrome" );
     storage.init();
 
