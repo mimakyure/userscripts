@@ -24,6 +24,7 @@
  * Reorgaize storage code and change tests for GM and DOM Stroage.
  * Update string property names to be more consistent, maybe.
  * Use strict equality operators for everything.
+ * Use stricter version parsing regular expression in updater.
  **
  * 20110227
  * Update for Greasemonkey 9.0 compatibility
@@ -269,7 +270,7 @@
         updateAvailable = this.version < RegExp.$1;
 
       // compare script dates
-      } else if ( /@uso:timestamp\s*(\S.+)/.test( scriptInfo ) ) {
+      } else if ( /@uso:timestamp\s*(\S[\da-zA-Z,:;+ ]+)/.test( scriptInfo ) ) {
         updateAvailable = new Date( this.date ) < new Date( RegExp.$1 );
       }
 
