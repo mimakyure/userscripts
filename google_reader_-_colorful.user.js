@@ -26,6 +26,7 @@
  * Use strict equality operators for everything.
  * Use stricter version parsing regular expression in updater.
  * Don't run in sharing bookmarklet popup iframe.
+ * Simplify hue calculation process.
  **
  * 20110227
  * Update for Greasemonkey 9.0 compatibility
@@ -762,8 +763,8 @@
     getHue: function( title ) { // calculate item hue
       var hue = 0;
 
-      for ( var i = 0, ch; ( ch = title[ i ] ); i++ ) {
-        hue += ch.charCodeAt( 0 );
+      for ( var i = 0, cc; cc = title.charCodeAt( i ); i++ ) {
+        hue += cc;
       }
       hue %= 360;
 
