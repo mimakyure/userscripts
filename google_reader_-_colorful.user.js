@@ -29,6 +29,7 @@
  * Simplify hue calculation process.
  * Clean up rgb color parsing.
  * Simplify hsl color calculation.
+ * Move script info from global variable to property of updater.
  **
  * 20110227
  * Update for Greasemonkey 9.0 compatibility
@@ -91,14 +92,6 @@
  **/
 
 ( function() {
-
-  // info used to check for script updates
-  var SCRIPT_INFO = {
-    version:    "20110216",
-    date:       "Wed, 16 Feb 2011 19:07:18 GMT",
-    updateUrl:  "http://userscripts.org/scripts/source/8782.meta.js",
-    installUrl: "http://userscripts.org/scripts/source/8782.user.js"
-  };
 
   var STRINGS = {
     // pref labels
@@ -236,23 +229,26 @@
   // script updater
   var updater = {
     loader: null,
-    version: 0,
-    homeUrl: "",
-    updateUrl: "",
-    installUrl: "",
+
+    // info used to check for script updates
+    scriptInfo: {
+      version:    "20110216",
+      date:       "Wed, 16 Feb 2011 19:07:18 GMT",
+      updateUrl:  "http://userscripts.org/scripts/source/8782.meta.js",
+      installUrl: "http://userscripts.org/scripts/source/8782.user.js"
+    },
 
     init: function() {
-      for ( var prop in SCRIPT_INFO ) {
-        this[ prop ] = SCRIPT_INFO[ prop ];
-      }
 
       // test if this is the script meta info page that loaded
-      if ( location.href === SCRIPT_INFO.updateUrl ) {
+      if ( location.href === this.scriptInfo.updateUrl ) {
         // running on userscripts.org domain
 
         document.body.setAttribute( "style",
                                     "visibility: hidden; overflow: hidden;" );
-        this.parseMetaInfo( this.installUrl ); // check if there is an update
+
+        // check if there is an update
+        this.parseMetaInfo( this.scriptInfo.installUrl );
         return true; // notify that this was the script meta page
       }
 
@@ -266,19 +262,19 @@
     },
 
     parseMetaInfo: function( url ) {
-      var scriptInfo = document.body.innerHTML;
-      var updateAvailable;
+      var metaInfo = document.body.innerHTML;
+      var hasUpdate;
 
       // compare script versions
-      if ( /@version\s*([\S]+)/.test( scriptInfo ) ) {
-        updateAvailable = this.version < RegExp.$1;
+      if ( /@version\s*([\S]+)/.test( metaInfo ) ) {
+        hasUpdate = this.scriptInfo.version < RegExp.$1;
 
       // compare script dates
-      } else if ( /@uso:timestamp\s*(\S[\da-zA-Z,:;+ ]+)/.test( scriptInfo ) ) {
-        updateAvailable = new Date( this.date ) < new Date( RegExp.$1 );
+      } else if ( /@uso:timestamp\s*(\S[\da-zA-Z,:;+ ]+)/.test( metaInfo ) ) {
+        hasUpdate = new Date( this.scriptInfo.date ) < new Date( RegExp.$1 );
       }
 
-      if ( updateAvailable ) {
+      if ( hasUpdate ) {
         location.href = "data:text/html," +
           "<style>body{ visibility: visible; overflow: hidden;" +
           "font-family: Arial, sans-serif; color: #2244BB; }</style>" +
@@ -293,7 +289,7 @@
         // return false;
       // }
 
-      this.loader.src = this.updateUrl;
+      this.loader.src = this.scriptInfo.updateUrl;
 
       // just check it every time the settings page is opened
       // storage.setItem( "last-check", new Date().getTime() + "" );
