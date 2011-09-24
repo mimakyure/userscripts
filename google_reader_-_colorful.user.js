@@ -31,6 +31,7 @@
  * Simplify hsl color calculation.
  * Move script info from global variable to property of updater.
  * Use decode/encodeURIComponent instead of un/escape for cookies.
+ * Declare variables at top of scope and use single var statement.
  **
  * 20110227
  * Update for Greasemonkey 9.0 compatibility
@@ -81,7 +82,7 @@
  * Works on expanded view too now. Possible/easier with Google Reader now using
  *  CSS for rounded borders.
  **
- * 20081104 
+ * 20081104
  * Added settings for coloring read/unread items.
  * Adjusted things in the settings.
  **
@@ -109,7 +110,7 @@
     // pref messages
     setMsg:     "will",
     unsetMsg:   "will not",
-    colorMsg: " be colored.",
+    colorMsg:   " be colored.",
     lvMsg:      "List view items ",
     evMsg:      "Expanded view entry bodies ",
     efMsg:      "Expanded view entry frames ",
@@ -117,7 +118,12 @@
     uiMsg:      "Unread items ",
     riMsg:      "Read items ",
     udMsg:      "Undefined",
-  };
+  },
+
+  storage = null,
+  updater = null,
+  settings = null,
+  theme = null;
 
 
 //=============================================================================
@@ -130,7 +136,7 @@
     document.getElementsByTagName( "head" )[0].appendChild( style );
     return style;
   }
-  
+
   function bind( func, thisArg ) {
     var args = Array.prototype.slice.call( arguments, 2 );
 
@@ -150,15 +156,16 @@
     cookie: {},
 
     init: function() { // initialize methods for data storage access
-      var pairs = {};
+      var pairs, cookie;
 
       if ( this.testGMStorage() || this.testDOMStorage() ) {
         return;
       }
 
-      var cookie = decodeURIComponent( document.cookie );
+      pairs = {};
+      cookie = decodeURIComponent( document.cookie );
       if ( /gm-color=([\w-:]+);/.test( cookie ) ) {
-        var cookie = RegExp.$1;
+        cookie = RegExp.$1;
 
         cookie.split( "/" ).forEach( function( pair ) {
           var set = pair.split( ":" );
@@ -181,10 +188,10 @@
           if ( typeof GM_deleteValue === "function" ) {
             GM_deleteValue( "test" );
           }
-        this.getItem = GM_getValue;
-        this.setItem = GM_setValue;
+          this.getItem = GM_getValue;
+          this.setItem = GM_setValue;
           return true;
-      }
+        }
       }
 
     },
@@ -214,14 +221,16 @@
     },
 
     setItem: function( name, value ) {
-      this.cookie[ name ] = value;
-      var strCookie = "gm-color=";
+      var strCookie = "gm-color=",
+          future = new Date( ( new Date().getTime() + 10*365*24*60*60*1000 ) ),
+          prop = "";
 
-      for ( var prop in this.cookie ) {
+      this.cookie[ name ] = value;
+
+      for ( prop in this.cookie ) {
         strCookie += prop + ":" + this.cookie[ prop ] + "/";
       }
 
-      var future = new Date( ( new Date().getTime() + 10*365*24*60*60*1000 ) );
       strCookie += ";path=/reader;expires=" + future.toGMTString();
 
       document.cookie = encodeURIComponent( strCookie );
@@ -229,7 +238,7 @@
   };
 
   // script updater
-  var updater = {
+  updater = {
     loader: null,
 
     // info used to check for script updates
@@ -241,6 +250,7 @@
     },
 
     init: function() {
+      var loader;
 
       // test if this is the script meta info page that loaded
       if ( location.href === this.scriptInfo.updateUrl ) {
@@ -254,7 +264,7 @@
         return true; // notify that this was the script meta page
       }
 
-      var loader = document.createElement( "iframe" );
+      loader = document.createElement( "iframe" );
       loader.setAttribute( "style", "position: absolute;" +
                                     "height: 0; width: 0;" );
       loader.addEventListener( "load", this.showUpdate, false );
@@ -264,8 +274,8 @@
     },
 
     parseMetaInfo: function( url ) {
-      var metaInfo = document.body.innerHTML;
-      var hasUpdate;
+      var metaInfo = document.body.innerHTML,
+          hasUpdate = false;
 
       // compare script versions
       if ( /@version\s*([\S]+)/.test( metaInfo ) ) {
@@ -307,26 +317,30 @@
   };
 
   // user interface for script settings added on settings page
-  var settings = {
+  settings = {
     timeoutID: 0,
     entries: null,
 
     init: function() { // insert page color options into the settings page
+      var section = this.addPrefs(),
+          check = false;
+
       // ascend out of iframe
       this.entries = frameElement.ownerDocument.getElementById( "entries" );
 
-      var sect = this.addPrefs();
-
       // check for userscript updates
       // comment this section out if you want to disable update checks
-      var check = updater.check();
+      check = updater.check();
       if ( check ) {
-        sect.insertBefore( check, sect.firstChild );
+        section.insertBefore( check, section.firstChild );
       }
     },
 
     addPrefs: function() {
-      var sect = document.createElement( "div" );
+      var sect = document.createElement( "div" ),
+          lists = sect.getElementsByTagName( "ul" ),
+          list1 = lists[ 1 ], list2 = lists[ 0 ],
+          tc = bind( this.toggleColors, this );
       sect.className = "extra";
 
       // two column list
@@ -342,11 +356,6 @@
 
       document.getElementById( "setting-extras-body" ).appendChild( sect );
 
-      var lists = sect.getElementsByTagName( "ul" );
-      var list1 = lists[ 1 ], list2 = lists[ 0 ];
-
-      var tc = bind( this.toggleColors, this );
-
       this.addColorPref( list2, "gm-color-ri", STRINGS.riLbl, tc );
       this.addColorPref( list2, "gm-color-ui", STRINGS.uiLbl, tc );
       this.addColorPref( list1, "gm-color-lv", STRINGS.lvLbl, tc );
@@ -358,22 +367,24 @@
     },
 
     addColorPref: function ( list, id, text, handler, def ) {
-      var pref = document.createElement( "li" );
-      var selected = storage.getItem( id, def === void 0 ? 1 : def );
+      var pref = document.createElement( "li" ),
+          chk = pref.firstChild.firstChild,
+          selected = storage.getItem( id, def === void 0 ? 1 : def );
       pref.innerHTML = "<label><input id=\"" + id + "\" type=\"checkbox\"/>" +
                        text + "</label>";
 
       // just setting the "checked" attribute doesn't seem to work in Chrome
       // I should figure out why later
-      var chk = pref.firstChild.firstChild;
+
       chk.checked = ( selected ) ? true : false;
       list.appendChild( pref );
       chk.addEventListener( "change", handler, false );
     },
 
     toggleColors: function( event ) {
-      var id = event.target.id, curr = event.target.checked;
-      var msg, newPref = "", cName = "";
+      var id = event.target.id, curr = event.target.checked,
+          msg = "", newPref = "", cName = "",
+          re = new RegExp( id + " |^", "g" );
 
       if ( curr ) {
         newPref = id;
@@ -384,7 +395,6 @@
         msg = "<em>" + STRINGS.unsetMsg + "</em>";
       }
 
-      var re = new RegExp( id + " |^", "g" );
       this.entries.className = this.entries.className.replace( re, cName );
       storage.setItem( id, newPref );
       this.setMessage( id, msg );
@@ -392,21 +402,22 @@
 
     setMessage: function( id, msg ) {
       clearTimeout( this.timeoutID );
-      var inner = document.getElementById( "message-area-inner" );
-      var outer = document.getElementById( "message-area-outer" );
+      var inner = document.getElementById( "message-area-inner" ),
+          outer = document.getElementById( "message-area-outer" ),
+          type = "", newMsg = "";
 
       // get the message string to insert into the page
-      var type = ( id === "gm-color-lv" ) ? STRINGS.lvMsg :
-                 ( id === "gm-color-ev" ) ? STRINGS.evMsg :
-                 ( id === "gm-color-ef" ) ? STRINGS.efMsg :
-                 ( id === "gm-color-ui" ) ? STRINGS.uiMsg :
-                 ( id === "gm-color-ri" ) ? STRINGS.riMsg : 
-                 ( id === "gm-color-cv" ) ? STRINGS.cvMsg :
-                 STRINGS.udMsg;
+      type = ( id === "gm-color-lv" ) ? STRINGS.lvMsg :
+             ( id === "gm-color-ev" ) ? STRINGS.evMsg :
+             ( id === "gm-color-ef" ) ? STRINGS.efMsg :
+             ( id === "gm-color-ui" ) ? STRINGS.uiMsg :
+             ( id === "gm-color-ri" ) ? STRINGS.riMsg :
+             ( id === "gm-color-cv" ) ? STRINGS.cvMsg :
+             STRINGS.udMsg;
 
-      var newMsg = type + msg + STRINGS.colorMsg; 
+      newMsg = type + msg + STRINGS.colorMsg;
       inner.innerHTML = newMsg; // set the message
-      
+
       // force display and set position and width
       outer.setAttribute( "style", "display: block !important;" +
                           "margin-left:" +
@@ -442,7 +453,7 @@
   };
 
   // controls and applies colors
-  var theme = {
+  theme = {
     colors: {}, // used to store the calculated colors
     prefs: "",  // pref settings
     bgColor: null, // theme settings
@@ -490,25 +501,26 @@
       "}",
 
     init: function( chrome ) {
+      var setup = this.setup, thm = this,
+          set = function() {
+            setup.call( thm );
+            chrome.removeEventListener( "DOMNodeInserted", set, false );
+          };
+
       addStyle( this.baseCss );
       this.styles = addStyle("/* css to color entries */");
       this.prefs = settings.getColorPrefs();
 
-      var setup = this.setup, thm = this;
-      var set = function() {
-        setup.call( thm );
-        chrome.removeEventListener( "DOMNodeInserted", set, false );
-      };
       chrome.addEventListener( "DOMNodeInserted", set, false );
     },
 
     setup: function() { // initial setup and toggling of settings
+      var prefs = this.prefs,
+          entries = document.getElementById( "entries" );
       this.initConfig(); // put this in here so theme scripts run first
-      var prefs = this.prefs;
-      var entries = document.getElementById( "entries" );
 
       if ( entries ) {
-        entries.className = prefs + entries.className; 
+        entries.className = prefs + entries.className;
         entries.addEventListener( "DOMNodeInserted",
                                   bind( this.process, this ), false );
         this.entries = entries.getElementsByClassName( "entry" );
@@ -518,8 +530,9 @@
     // determine what color theme to use by looking at the header colors
     initConfig: function() {
       var style = getComputedStyle(
-                  document.getElementById("chrome-header"), null );
-      var bg = this.rgbToHsl( style.getPropertyValue( "background-color" ) );
+                  document.getElementById("chrome-header"), null ),
+          bg = this.rgbToHsl( style.getPropertyValue( "background-color" ) ),
+          color = this.rgbToHsl( style.getPropertyValue( "color" ) );
 
       // a min saturation & lightness is needed to distinguish colors.
       // for read items, a value is further subtracted from these
@@ -527,20 +540,20 @@
                        sat: Math.max( bg[ 1 ], 35 ),
                        lt: Math.max( bg[ 2 ], 32 ) };
 
-      var color = this.rgbToHsl( style.getPropertyValue( "color" ) );
       this.textColor = { hue: color[ 0 ], sat: color[ 1 ], lt: color[ 2 ] };
       this.setTextColor();
     },
 
     rgbToHsl: function( color ) { // calculate hsl from rgb css color string
-      var hue = 0, sat = 0, lt;
+      var hue = 0, sat = 0, lt,
 
-      var rgb = this.getRgb( color );
-      var max = Math.max.apply( Math, rgb );
-      var min = Math.min.apply( Math, rgb );
-      var chroma = max - min;
+          rgb = this.getRgb( color ),
+          max = Math.max.apply( Math, rgb ),
+          min = Math.min.apply( Math, rgb ),
+          chroma = max - min,
 
-      var index = rgb.indexOf( max );
+          index = rgb.indexOf( max );
+
       rgb.splice( index, 1 );
 
       lt = ( max + min )/2;
@@ -554,18 +567,20 @@
     },
 
     getRgb: function( color ) {
-      var rgb;
-      var hexRegExp = /#([A-Fa-f0-9]{2})([A-Fa-f0-9]{2})([A-Fa-f0-9]{2})/;
+      var red, green, blue,
+          hexRegExp;
 
       if ( /(\d+), (\d+), (\d+)/.test( color ) ) {
         return [ RegExp.$1/255, RegExp.$2/255, RegExp.$3/255 ];
       }
 
       // Opera returns a hex value, so convert hex to decimal
+      hexRegExp = /#([A-Fa-f0-9]{2})([A-Fa-f0-9]{2})([A-Fa-f0-9]{2})/; // <-------------------------------------------------------------------- CHECKME
+
       if ( hexRegExp.test( color ) ) {
-        var red = parseInt( RegExp.$1, 16 );
-        var green = parseInt( RegExp.$2, 16 );
-        var blue = parseInt( RegExp.$3, 16 );
+        red = parseInt( RegExp.$1, 16 );
+        green = parseInt( RegExp.$2, 16 );
+        blue = parseInt( RegExp.$3, 16 );
 
         return [ red/255, green/255, blue/255 ];
       }
@@ -574,52 +589,53 @@
     },
 
     setTextColor: function() {
-      var hue = this.textColor.hue;
-      var sat = this.textColor.sat;
-      var lt = this.textColor.lt;
+      var hue = this.textColor.hue,
+          sat = this.textColor.sat,
+          lt = this.textColor.lt,
 
       // default color lightnesses:
       // bg lt: 85.3
       // color lt: 0
 
-      // text lightnesses are set to values in the range between title text and
-      // background color lightnesses
-      var range = this.bgColor.lt - lt;
+          // text lightnesses are set to values in the range between title text
+          // and background color lightnesses
+          range = this.bgColor.lt - lt,
 
-      var css = "  color: hsl(" + hue + "," + sat + "%, ";
+          css = "  color: hsl(" + hue + "," + sat + "%, ";
+
       this.styles.textContent += ( "" +
         "#entries .collapsed .entry-title {" +
         css + lt + "% ) !important;" + // 000000 <- default color
-        "}" + 
+        "}" +
         "#entries.list .collapsed .entry-main .entry-source-title {" +
         css + ( lt + range*0.42 ) + "% ) !important;" + // 555555
-        "}" + 
+        "}" +
         ".entry .entry-author," +
         ".entry-comments .comment-time, .entry .entry-date {" +
         css + ( lt + range*0.50 ) + "% ) !important;" + // 666666
-        "}" + 
+        "}" +
         "#entries.list .collapsed .entry-secondary {" +
         css + ( lt + range*0.59 ) + "% ) !important;" + // 777777
         "}" +
         // "a, a:visited, .link {" + // shouldn't need to mess with link color
         // css + lt + "% ) !important;" + // 2244BB
-        // "}" + 
-        "#entries .item-body {" + 
+        // "}" +
+        "#entries .item-body {" +
         css + lt + "% ) !important;" + // 000000
         "}" );
     },
 
     // inject color css into the page
     process: function() {
-      var bgColor = this.bgColor;
-      var styles = this.styles;
-      var thm = this;
+      var bgColor = this.bgColor,
+          styles = this.styles,
+          thm = this,
 
-      // pick up all uncolored entries, including ones missed previously
-      var noColor = Array.prototype.slice.apply( this.entries );
-      noColor = noColor.filter(function( entry ) {
-                  return !entry.hasAttribute( "colored" );
-                } );
+         // pick up all uncolored entries, including ones missed previously
+         noColor = Array.prototype.slice.apply( this.entries );
+         noColor = noColor.filter(function( entry ) {
+                     return !entry.hasAttribute( "colored" );
+                   } );
 
       if ( !noColor.length ) {
         return;
@@ -643,23 +659,21 @@
     },
 
     getColorCss: function( title, bgColor ) { // generate css to color items
-      var hue = this.getHue( title );
-      var sat = bgColor.sat;
-      var lt = bgColor.lt;
+      var hue = "background-color: hsl(" + this.getHue( title ),
+          imp = "% ) !important;",
+          sat = bgColor.sat,
+          lt = bgColor.lt,
 
-      // set direction entry lightness is modified on read/hover
-      var dir = ( lt > 50 ) ? 1 : -1;
+          // set direction entry lightness is modified on read/hover
+          dir = ( lt > 50 ) ? 1 : -1,
 
-      var hsl = { 
-        norm: "background-color: hsl(" +
-          hue + "," + ( sat + 7 ) + "%," + ( lt - dir*5 )+ "% ) !important;",
-        hover: "background-color: hsl(" +
-          hue + "," + ( sat + 27 ) + "%, " + lt + "% ) !important;",
-        read: "background-color: hsl(" +
-          hue + "," + ( sat - 13 ) + "%," + ( lt + dir*5 ) + "% ) !important;",
-        readhvr: "background-color: hsl(" +
-          hue + "," + ( sat + 7 ) + "%," + ( lt + dir*10 ) + "% ) !important;"
-      };
+          // need to clean this up
+          hsl = {
+            norm: hue + "," + ( sat + 7 ) + "%," + ( lt - dir*5 )+ imp,
+            hover: hue + "," + ( sat + 27 ) + "%, " + lt + imp,
+            read: hue + "," + ( sat - 13 ) + "%," + ( lt + dir*5 ) + imp,
+            readhvr: hue + "," + ( sat + 7 ) + "%," + ( lt + dir*10 ) + imp
+          };
 
       return this.getLvCss( title, hsl ) + this.getEvCss( title, hsl ) +
              this.getEfCss( title, hsl ) + this.getCvCss( title, hsl );
@@ -667,8 +681,8 @@
 
     getLvCss: function( ttl, hsl ) { // css for coloring items in list view
       // this selector should be take priority over any other selector
-      var us = "#entries.gm-color-lv.gm-color-ui div[ colored='" + ttl + "' ]";
-      var rs = "#entries.gm-color-lv.gm-color-ri div[ colored='" + ttl + "' ]";
+      var us = "#entries.gm-color-lv.gm-color-ui div[ colored='" + ttl + "' ]",
+          rs = "#entries.gm-color-lv.gm-color-ri div[ colored='" + ttl + "' ]";
 
       return "" +
         us + " .collapsed {" + hsl.norm + "}" +
@@ -684,8 +698,8 @@
 
     // css for coloring expanded view item bodies
     getEvCss: function( ttl, hsl ) {
-      var us = "#entries.gm-color-ev.gm-color-ui div[ colored='" + ttl + "' ]";
-      var rs = "#entries.gm-color-ev.gm-color-ri div[ colored='" + ttl + "' ]";
+      var us = "#entries.gm-color-ev.gm-color-ui div[ colored='" + ttl + "' ]",
+          rs = "#entries.gm-color-ev.gm-color-ri div[ colored='" + ttl + "' ]";
 
       return "" +
         us + " .card," +
@@ -724,8 +738,8 @@
 
     // css for coloring expanded view item frames
     getEfCss: function( ttl, hsl ) {
-      var us = "#entries.gm-color-ef.gm-color-ui div[ colored='" + ttl + "' ]";
-      var rs = "#entries.gm-color-ef.gm-color-ri div[ colored='" + ttl + "' ]";
+      var us = "#entries.gm-color-ef.gm-color-ui div[ colored='" + ttl + "' ]",
+          rs = "#entries.gm-color-ef.gm-color-ri div[ colored='" + ttl + "' ]";
 
       return "" +
         us + " {" + hsl.norm + "}" +
@@ -740,8 +754,8 @@
     },
 
     getCvCss: function( ttl, hsl ) {
-      var us = "#entries.gm-color-cv.gm-color-ui div[ colored='" + ttl + "' ]";
-      var rs = "#entries.gm-color-cv.gm-color-ri div[ colored='" + ttl + "' ]";
+      var us = "#entries.gm-color-cv.gm-color-ui div[ colored='" + ttl + "' ]",
+          rs = "#entries.gm-color-cv.gm-color-ri div[ colored='" + ttl + "' ]";
 
       // comment view doesn't have read/unread
       return  "" +
@@ -757,9 +771,10 @@
     },
 
     getHue: function( title ) { // calculate item hue
-      var hue = 0;
+      var hue = 0,
+          i = 0, cc = 0;
 
-      for ( var i = 0, cc; cc = title.charCodeAt( i ); i++ ) {
+      for ( i = 0; cc = title.charCodeAt( i ); i++ ) {
         hue += cc;
       }
       hue %= 360;
@@ -774,13 +789,13 @@
 
 
   ( function() {
+    var chrome = document.getElementById( "chrome" );
 
     // test if this is a google reader sharing bookmarklet popup
     if ( location.href.search( "link-frame" ) >= 0 ) {
       return;
     }
 
-    var chrome = document.getElementById( "chrome" );
     storage.init();
 
     if ( chrome ) {
