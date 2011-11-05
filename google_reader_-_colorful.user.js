@@ -341,9 +341,9 @@
 
     addPrefs: function() {
       var sect = document.createElement( "div" ),
-          lists = sect.getElementsByTagName( "ul" ),
-          list1 = lists[ 1 ], list2 = lists[ 0 ],
+          lists, list1, list2,
           tc = bind( this.toggleColors, this );
+
       sect.className = "extra";
 
       // two column list
@@ -356,6 +356,9 @@
                        "<ul style=\"list-style-type: none;" +
                             "padding-left: 0;\">" +
                        "</ul></div>";
+      lists = sect.getElementsByTagName( "ul" );
+      list1 = lists[ 1 ];
+      list2 = lists[ 0 ];
 
       document.getElementById( "setting-extras-body" ).appendChild( sect );
 
@@ -371,10 +374,12 @@
 
     addColorPref: function ( list, id, text, handler, def ) {
       var pref = document.createElement( "li" ),
-          chk = pref.firstChild.firstChild,
+          chk,
           selected = storage.getItem( id, def === void 0 ? 1 : def );
+
       pref.innerHTML = "<label><input id=\"" + id + "\" type=\"checkbox\"/>" +
                        text + "</label>";
+      chk = pref.firstChild.firstChild;
 
       // just setting the "checked" attribute doesn't seem to work in Chrome
       // I should figure out why later
