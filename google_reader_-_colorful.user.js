@@ -8,13 +8,15 @@
 // @include        http://userscripts.org/scripts/source/8782.meta.js
 // @description    Colors items in Google Reader.
 // @author         kepp
-// @jsversion      1.6
 // @updateURL      http://userscripts.org/scripts/source/8782.meta.js
 // @version        20111105
 // ==/UserScript==
 
 
 /**
+ * Correct dates in change log.
+ * Removed jsversion metadata as not useful/inaccurate.
+ **
  * 2011-11-05
  * Remove JSLint config sections and other testing leftovers.
  * Remove $id shortcut function. Inline function.
@@ -22,7 +24,7 @@
  * Remove $xa shortcut function. Replace with getElementsByClassName NodeList.
  * Change test for undefined to use "void 0".
  * Change base css from global variable to theme controller object property.
- * Reorgaize storage code and change tests for GM and DOM Stroage.
+ * Reorgaize storage code and change tests for GM and DOM Storage.
  * Update string property names to be more consistent, maybe.
  * Use strict equality operators for everything.
  * Use stricter version parsing regular expression in updater.
@@ -43,10 +45,10 @@
  * - Added semi-transparent card actions background.
  * - Removed unused CSS.
  **
- * 2011-02-27
+ * 2011-02-16
  * Update for Greasemonkey 9.0 compatibility
  **
- * 2010-02-27
+ * 2010-02-26
  * Fix for updates not showing.
  * Substituted custom image for those used to link to the original article.
  * Consolidated where styles are inserted.
@@ -74,7 +76,7 @@
  * Fix for coloring unread items only in list view.
  * Added Google Chrome support.
  **
- * 2009-08-22
+ * 2009-08-21
  * Fix to ensure that all items get colored.
  * Fixes for Google Reader update.
  * Added script update notification to the settings page.
@@ -92,7 +94,7 @@
  * Works on expanded view too now. Possible/easier with Google Reader now using
  *  CSS for rounded borders.
  **
- * 2008-11-04
+ * 2008-12-04
  * Added settings for coloring read/unread items.
  * Adjusted things in the settings.
  **
