@@ -10,11 +10,12 @@
 // @author         kepp
 // @jsversion      1.6
 // @updateURL      http://userscripts.org/scripts/source/8782.meta.js
-// @version        20110227
+// @version        20111105
 // ==/UserScript==
 
 
 /**
+ * 2011-11-05
  * Remove JSLint config sections and other testing leftovers.
  * Remove $id shortcut function. Inline function.
  * Remove $x shortcut function. Replace with getElementById/ClassName.
