@@ -34,6 +34,7 @@
  * Declare variables at top of scope and use single var statement.
  * Better date formatting in change log.
  * Disabled updater code until better solution is found.
+ * Remove Comment View/Google Buzz support.
  **
  * 2011-02-27
  * Update for Greasemonkey 9.0 compatibility
@@ -103,7 +104,7 @@
     lvLbl:      "List view headers.",
     evLbl:      "Expanded view entry bodies.",
     efLbl:      "Expanded view entry frames.",
-    cvLbl:      "Comment view entries.",
+    // cvLbl:      "Comment view entries.",
     riLbl:      "Read items.",
     uiLbl:      "Unread items.",
     updateLbl:  "Userscript Update Available",
@@ -116,7 +117,7 @@
     lvMsg:      "List view items ",
     evMsg:      "Expanded view entry bodies ",
     efMsg:      "Expanded view entry frames ",
-    cvMsg:      "Comment view items ",
+    // cvMsg:      "Comment view items ",
     uiMsg:      "Unread items ",
     riMsg:      "Read items ",
     udMsg:      "Undefined",
@@ -363,7 +364,7 @@
       this.addColorPref( list1, "gm-color-lv", STRINGS.lvLbl, tc );
       this.addColorPref( list1, "gm-color-ev", STRINGS.evLbl, tc );
       this.addColorPref( list1, "gm-color-ef", STRINGS.efLbl, tc, 0 );
-      this.addColorPref( list1, "gm-color-cv", STRINGS.cvLbl, tc, 0 );
+      // this.addColorPref( list1, "gm-color-cv", STRINGS.cvLbl, tc, 0 );
 
       return sect;
     },
@@ -414,7 +415,7 @@
              ( id === "gm-color-ef" ) ? STRINGS.efMsg :
              ( id === "gm-color-ui" ) ? STRINGS.uiMsg :
              ( id === "gm-color-ri" ) ? STRINGS.riMsg :
-             ( id === "gm-color-cv" ) ? STRINGS.cvMsg :
+             // ( id === "gm-color-cv" ) ? STRINGS.cvMsg :
              STRINGS.udMsg;
 
       newMsg = type + msg + STRINGS.colorMsg;
@@ -468,12 +469,12 @@
       "#entries .entry-likers, /* like count */" +
       "#entries.list .collapsed .entry-source-title," +
       "#entries.list .collapsed .entry-secondary," +
-      "#entries.list .collapsed .entry-title," +
-      "#entries.comment-cards .entry-comments {" +
+      "#entries.list .collapsed .entry-title {" +
+      // "#entries.comment-cards .entry-comments {" +
       "  background-color: transparent !important;" +
       "}" +
-      ".gm-color-lv .collapsed, /* list view headers */" +
-      "#entries.comment-cards .entry .comment-entry /* comment view */ {" +
+      ".gm-color-lv .collapsed { /* list view headers */" +
+      // "#entries.comment-cards .entry .comment-entry /* comment view */ {" +
       "  border-color: transparent !important;" +
       "}" +
       "#entries.list.gm-color-lv #current-entry .collapsed {" +
@@ -612,8 +613,8 @@
         "#entries.list .collapsed .entry-main .entry-source-title {" +
         css + ( lt + range*0.42 ) + "% ) !important;" + // 555555
         "}" +
-        ".entry .entry-author," +
-        ".entry-comments .comment-time, .entry .entry-date {" +
+        ".entry .entry-author, .entry .entry-date {" +
+        // ".entry-comments .comment-time {" +
         css + ( lt + range*0.50 ) + "% ) !important;" + // 666666
         "}" +
         "#entries.list .collapsed .entry-secondary {" +
@@ -678,7 +679,7 @@
           };
 
       return this.getLvCss( title, hsl ) + this.getEvCss( title, hsl ) +
-             this.getEfCss( title, hsl ) + this.getCvCss( title, hsl );
+             this.getEfCss( title, hsl ); // + this.getCvCss( title, hsl );
     },
 
     getLvCss: function( ttl, hsl ) { // css for coloring items in list view
@@ -755,22 +756,22 @@
              hsl.readhvr + "}";
     },
 
-    getCvCss: function( ttl, hsl ) {
-      var us = "#entries.gm-color-cv.gm-color-ui div[ colored='" + ttl + "' ]",
-          rs = "#entries.gm-color-cv.gm-color-ri div[ colored='" + ttl + "' ]";
+    // getCvCss: function( ttl, hsl ) {
+      // var us = "#entries.gm-color-cv.gm-color-ui div[ colored='" + ttl + "' ]",
+          // rs = "#entries.gm-color-cv.gm-color-ri div[ colored='" + ttl + "' ]";
 
       // comment view doesn't have read/unread
-      return  "" +
-        us + " .comment-entry {" + hsl.norm + "}" +
-        us + ":hover .comment-entry {" + hsl.hover + "}" +
-        us + ".read .comment-entry," +
-        us + ".read:hover .comment-entry { /* force no color for read items */ " +
-             "background-color: white !important; }" +
-        rs + ".read .comment-entry { /* override unread item colors */ " +
-             hsl.read + "}" +
-        rs + ".read:hover .comment-entry { /* override unread item colors */ " +
-             hsl.readhvr + "}";
-    },
+      // return  "" +
+        // us + " .comment-entry {" + hsl.norm + "}" +
+        // us + ":hover .comment-entry {" + hsl.hover + "}" +
+        // us + ".read .comment-entry," +
+        // us + ".read:hover .comment-entry { /* force no color for read items */ " +
+             // "background-color: white !important; }" +
+        // rs + ".read .comment-entry { /* override unread item colors */ " +
+             // hsl.read + "}" +
+        // rs + ".read:hover .comment-entry { /* override unread item colors */ " +
+             // hsl.readhvr + "}";
+    // },
 
     getHue: function( title ) { // calculate item hue
       var hue = 0,
