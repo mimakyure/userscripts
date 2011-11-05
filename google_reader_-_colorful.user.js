@@ -35,6 +35,12 @@
  * Better date formatting in change log.
  * Disabled updater code until better solution is found.
  * Remove Comment View/Google Buzz support.
+ * Fix for Google Reader style update.
+ * - New id for element we're sampling to try and match page theme.
+ * - Adjusted script for greater entry heights.
+ * - Removed image replacement for link to external article.
+ * - Added semi-transparent card actions background.
+ * - Removed unused CSS.
  **
  * 2011-02-27
  * Update for Greasemonkey 9.0 compatibility
@@ -478,35 +484,50 @@
       // "#entries.comment-cards .entry-comments {" +
       "  background-color: transparent !important;" +
       "}" +
-      ".gm-color-lv .collapsed { /* list view headers */" +
+      ".gm-color-lv .collapsed, /* list view headers */" +
+      "#entries.gm-color-ev.gm-color-ef .card {" +
       // "#entries.comment-cards .entry .comment-entry /* comment view */ {" +
       "  border-color: transparent !important;" +
       "}" +
+      "#entries.cards.gm-color-ev .card-actions {" +
+      "  background-color: rgba( 0, 0, 0, 0.05 ) !important;" +
+      "}" +
+      "#entries.cards.gm-color-ev .card-bottom {" +
+      "  border-color: rgba( 0, 0, 0, 0.1 ) !important;" +
+      "}" +
       "#entries.list.gm-color-lv #current-entry .collapsed {" +
-      "  border: 2px solid #8181DC !important;" +
+      "  border-width: 2px 0 !important;" +
+      "  border-color: #777777 !important;" + // this needs more contrast
       "}" +
       "#entries.list.gm-color-lv #current-entry.expanded .collapsed {" +
       "  border-bottom-color: transparent !important;" +
       "  border-width: 2px 0 !important;" +
       "}" +
-      "#entries .entry {" +
-      "  padding: 5px 0;" +
+      "#entries.cards.gm-color-ev .card," +
+      "#entries.cards.gm-color-ef .card {" +
+      "  padding-right: 1em;" +
       "}" +
-      "#entries.list .collapsed {" +
-      "  line-height: 2.4ex !important; /* hide entry snippet 2nd line */" +
-      "}" +
-      "#entries .collapsed .entry-original," +
-      ".entry .entry-title .entry-title-go-to { /* article link image */" +
-      "  background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4A" +
-      "AAAOBAMAAADtZjDiAAAALVBMVEX////R3fPm6/nJ1PPV3vXc5fbCz/He5fjCz/H////U3" +
-      "/Tj6fjr7/r3+f3O2fTPDCQ+AAAAB3RSTlMA71DmxK0A9H5uGAAAAFtJREFUeF41jbEJgE" +
-      "AUQx+CG1hYCm4gOICdpeACh5sIwk+jAxw3yI3iOY0I/jSBkLxANanpgFXSCLU+LfSWLWt" +
-      "gtmRJB+1VnnLvSGc8o9w9957vnPNzA2zfT3gBaL8sJRF+PgoAAAAASUVORK5CYII=')" +
-      "  no-repeat !important;" +
-      "}" +
-      ".entry .entry-title .entry-title-go-to {" +
-      "  background-position: left 3px !important;" +
+      "#entries.cards.gm-color-ev:not(.gm-color-ef) .card-bottom {" +
+      "  margin-bottom: 1ex !important;" +
       "}",
+      // "#entries .entry {" +
+      // "  padding: 5px 0;" +
+      // "}",
+      // "#entries.list .collapsed {" +
+      // "  line-height: 2.4ex !important; /* hide entry snippet 2nd line */" +
+      // "}" +
+      // "#entries .collapsed .entry-original," +
+      // ".entry .entry-title .entry-title-go-to { /* article link image */" +
+      // "  background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4A" +
+      // "AAAOBAMAAADtZjDiAAAALVBMVEX////R3fPm6/nJ1PPV3vXc5fbCz/He5fjCz/H////U3" +
+      // "/Tj6fjr7/r3+f3O2fTPDCQ+AAAAB3RSTlMA71DmxK0A9H5uGAAAAFtJREFUeF41jbEJgE" +
+      // "AUQx+CG1hYCm4gOICdpeACh5sIwk+jAxw3yI3iOY0I/jSBkLxANanpgFXSCLU+LfSWLWt" +
+      // "gtmRJB+1VnnLvSGc8o9w9957vnPNzA2zfT3gBaL8sJRF+PgoAAAAASUVORK5CYII=')" +
+      // "  no-repeat !important;" +
+      // "}" +
+      // ".entry .entry-title .entry-title-go-to {" +
+      // "  background-position: left 3px !important;" + */
+      // "}",
 
     init: function( chrome ) {
       var setup = this.setup, thm = this,
@@ -537,8 +558,8 @@
 
     // determine what color theme to use by looking at the header colors
     initConfig: function() {
-      var style = getComputedStyle(
-                  document.getElementById("chrome-header"), null ),
+      var style = getComputedStyle( 
+                  document.getElementById( "viewer-container" ), null ),
           bg = this.rgbToHsl( style.getPropertyValue( "background-color" ) ),
           color = this.rgbToHsl( style.getPropertyValue( "color" ) );
 
@@ -546,7 +567,7 @@
       // for read items, a value is further subtracted from these
       this.bgColor = { hue: bg[ 0 ],
                        sat: Math.max( bg[ 1 ], 35 ),
-                       lt: Math.max( bg[ 2 ], 32 ) };
+                       lt: Math.min( bg[ 2 ], 70 ) };
 
       this.textColor = { hue: color[ 0 ], sat: color[ 1 ], lt: color[ 2 ] };
       this.setTextColor();
