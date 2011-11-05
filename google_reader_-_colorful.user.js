@@ -33,6 +33,7 @@
  * Use decode/encodeURIComponent instead of un/escape for cookies.
  * Declare variables at top of scope and use single var statement.
  * Better date formatting in change log.
+ * Disabled updater code until better solution is found.
  **
  * 2011-02-27
  * Update for Greasemonkey 9.0 compatibility
@@ -331,10 +332,10 @@
 
       // check for userscript updates
       // comment this section out if you want to disable update checks
-      check = updater.check();
-      if ( check ) {
-        section.insertBefore( check, section.firstChild );
-      }
+      // check = updater.check();
+      // if ( check ) {
+      //  section.insertBefore( check, section.firstChild );
+      // }
     },
 
     addPrefs: function() {
@@ -804,9 +805,9 @@
     }
 
     else { // settings and script meta info page have no "chrome" element
-      if ( updater.init() ) { // script meta info page
-        return;
-      }
+      // if ( updater.init() ) { // script meta info page
+      //   return;
+      // }
 
       settings.init();
     }
