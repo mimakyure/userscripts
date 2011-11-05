@@ -32,11 +32,12 @@
  * Move script info from global variable to property of updater.
  * Use decode/encodeURIComponent instead of un/escape for cookies.
  * Declare variables at top of scope and use single var statement.
+ * Better date formatting in change log.
  **
- * 20110227
+ * 2011-02-27
  * Update for Greasemonkey 9.0 compatibility
  **
- * 20100227
+ * 2010-02-27
  * Fix for updates not showing.
  * Substituted custom image for those used to link to the original article.
  * Consolidated where styles are inserted.
@@ -46,25 +47,25 @@
  * Added option to color "Comment view".
  * Fix for incorrect pref display in Google Chrome.
  **
- * 20091122
+ * 2009-11-22
  * Fix for breakage on expanded view.
  * CSS modified to increase selector priority to ensure colors get applied.
  **
- * 20091120
+ * 2009-11-20
  * Fix pref settings when DOM Storage is used.
  * Fix for GM_getValue detection on Google Chrome dev channel.
  * Fix for not working after encountering a shared item. Script also works on
  *  the "Your stuff", Shared Items and Notes pages with this.
  * Switch code bracing style.
  **
- * 20091117
+ * 2009-11-17
  * Added prefs to select what is colored in expanded view, entry body or
  *  outline.
  * Fix for update version check being in the wrong direction.
  * Fix for coloring unread items only in list view.
  * Added Google Chrome support.
  **
- * 20090822
+ * 2009-08-22
  * Fix to ensure that all items get colored.
  * Fixes for Google Reader update.
  * Added script update notification to the settings page.
@@ -75,18 +76,18 @@
  * Cleaned up some code.
  * Also added DOM Storage fallback option.
  * *
- * 20081214
+ * 2008-12-14
  * Prefs split out into independent items and updated to apply instantly.
  *  Pref notification messages are also fixed to work properly.
  * Fix for script not working if Google Gears was installed (my bad design).
  * Works on expanded view too now. Possible/easier with Google Reader now using
  *  CSS for rounded borders.
  **
- * 20081104
+ * 2008-11-04
  * Added settings for coloring read/unread items.
  * Adjusted things in the settings.
  **
- * 20080730
+ * 2008-07-30
  * Fixed css mistake of read items not being colored.
  * Added https:// url to the include list.
  * Added coloring option on settings page, added settings page to the exclude
