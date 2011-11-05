@@ -382,7 +382,7 @@
       chk = pref.firstChild.firstChild;
 
       // just setting the "checked" attribute doesn't seem to work in Chrome
-      // I should figure out why later
+      // I should figure out why
 
       chk.checked = ( selected ) ? true : false;
       list.appendChild( pref );
@@ -471,7 +471,7 @@
 
     // CSS to allow items to be colored
     baseCss: "/* css to allow colors to apply */" +
-      "#entries .entry-likers, /* like count */" +
+      "#entries .entry-likers, /* let colors show through */" +
       "#entries.list .collapsed .entry-source-title," +
       "#entries.list .collapsed .entry-secondary," +
       "#entries.list .collapsed .entry-title {" +
