@@ -16,6 +16,8 @@
 /**
  * Correct dates in change log.
  * Removed jsversion metadata as not useful/inaccurate.
+ * Limit saturation and lightness ranges to better match previous color scheme.
+ *  Quick fix. Future release will make the colors user adjustable.
  **
  * 2011-11-05
  * Remove JSLint config sections and other testing leftovers.
@@ -569,8 +571,8 @@
       // a min saturation & lightness is needed to distinguish colors.
       // for read items, a value is further subtracted from these
       this.bgColor = { hue: bg[ 0 ],
-                       sat: Math.max( bg[ 1 ], 35 ),
-                       lt: Math.min( bg[ 2 ], 70 ) };
+                       sat: Math.max( Math.min( bg[ 1 ], 73 ), 50 ),
+                       lt: Math.max( Math.min( bg[ 2 ], 85 ), 10 ) };
 
       this.textColor = { hue: color[ 0 ], sat: color[ 1 ], lt: color[ 2 ] };
       this.setTextColor();
