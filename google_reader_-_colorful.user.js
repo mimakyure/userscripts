@@ -21,6 +21,8 @@
  * Additional fixes for Google Reader style update.
  *  Seems additional changes were rolled out after my last update.
  * - Removed option to color entry frames. Needs rework with new styling.
+ * - Use box-shadow to emphasize currently selected entry. Want to change
+ *   background color to do this, but not feasible at this point.
  **
  * 2011-11-05
  * Remove JSLint config sections and other testing leftovers.
@@ -492,31 +494,35 @@
       // "#entries.comment-cards .entry-comments {" +
       "  background-color: transparent !important;" +
       "}" +
-      ".gm-color-lv .collapsed /* list view headers */ {" +
+      // ".gm-color-lv .collapsed /* list view headers */ {" +
       // "#entries.gm-color-ev.gm-color-ef .card {" +
       // "#entries.comment-cards .entry .comment-entry /* comment view */ {" +
-      "  border-color: transparent !important;" +
-      "}" +
+      // "  border-color: transparent !important;" +
+      // "}" +
       "#entries.cards.gm-color-ev .card-actions {" +
       "  background-color: rgba( 0, 0, 0, 0.05 ) !important;" +
       "}" +
       "#entries.cards.gm-color-ev .card-bottom {" +
       "  border-color: rgba( 0, 0, 0, 0.1 ) !important;" +
       "}" +
-      "#entries.list.gm-color-lv #current-entry .collapsed {" +
-      "  border-width: 2px 0 !important;" +
-      "  border-color: #777777 !important;" + // this needs more contrast
-      "}" +
-      "#entries.list.gm-color-lv #current-entry.expanded .collapsed {" +
-      "  border-bottom-color: transparent !important;" +
-      "  border-width: 2px 0 !important;" +
-      "}" +
+      // "#entries.list.gm-color-lv #current-entry .collapsed {" +
+      // "  border-width: 2px 0 !important;" +
+      // "  border-color: #777777 !important;" + // this needs more contrast
+      // "}" +
+      // "#entries.list.gm-color-lv #current-entry.expanded .collapsed {" +
+      // "  border-bottom-color: transparent !important;" +
+      // "  border-width: 2px 0 !important;" +
+      // "}" +
       "#entries.cards.gm-color-ev .card {" +
       // "#entries.cards.gm-color-ef .card {" +
       "  padding-right: 1em;" +
       "}" +
       "#entries.cards.gm-color-ev .card-bottom {" +
       "  margin-bottom: 1ex !important;" +
+      "}" +
+      "#current-entry {" +
+      "  box-shadow: 0 0 1px 2px rgb(22, 88, 120);" +
+      "  z-index: 99999999;" +
       "}",
       // "#entries .entry {" +
       // "  padding: 5px 0;" +
@@ -722,15 +728,19 @@
           rs = "#entries.gm-color-lv.gm-color-ri div[ colored='" + ttl + "' ]";
 
       return "" +
-        us + " .collapsed {" + hsl.norm + "}" +
-        us + ":hover .collapsed {" + hsl.hover + "}" +
-        us + ".read .collapsed," +
-        us + ".read:hover .collapsed { /* force no color for read items */ " +
-             "background-color: white !important; }" +
+        us + ":not( .read ) .collapsed {" + hsl.norm + "}" +
+        us + ":not( .read ):hover .collapsed {" + hsl.hover + "}" +
+
         rs + ".read .collapsed { /* override unread item colors */" +
              hsl.read + "}" +
         rs + ".read:hover .collapsed { /* override unread item colors */ " +
-             hsl.readhvr + "}";
+             hsl.readhvr + "}" +
+
+        "#entries.gm-color-lv.gm-color-ui:not( .gm-color-ri ) .read .collapsed," +
+        "#entries.gm-color-lv.gm-color-ri:not( .gm-color-ui ) :not( .read ) .collapsed {" +
+        "  /* override current entry colors */" +
+        "  background-color: white !important;" +
+        "}";
     },
 
     // css for coloring expanded view item bodies
