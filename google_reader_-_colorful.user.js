@@ -9,11 +9,12 @@
 // @description    Colors items in Google Reader.
 // @author         kepp
 // @updateURL      http://userscripts.org/scripts/source/8782.meta.js
-// @version        20111105
+// @version        20111209
 // ==/UserScript==
 
 
 /**
+ * 2011-12-09
  * Correct dates in change log.
  * Removed jsversion metadata as not useful/inaccurate.
  * Limit saturation and lightness ranges to better match previous color scheme.
