@@ -13,6 +13,28 @@
 
 (() => {
 
+
+  // Get labels when page finishes loading them
+  function promiseLabels() {
+
+    return new Promise((resolve) => {
+
+      const obs = new MutationObserver(() => {
+
+        const q = "div:last-child > div:last-child > " +
+          "div.aim div[style*='margin-left']"
+        const lbls = document.querySelectorAll(q);
+
+        if (lbls.length > 0) {
+          obs.disconnect();
+          resolve(lbls);
+        }
+      });
+
+      obs.observe(document, {childList: true, subtree: true});
+    });
+  }
+
   // Parse label hierarchy (This assumes max depth of 1 nested label)
   function processLabels(lbls) {
     const lblData = [];
@@ -41,27 +63,6 @@
     });
 
     return lblData;
-  }
-
-  // Get labels when page finishes loading them
-  function promiseLabels() {
-
-    return new Promise((resolve) => {
-
-      const obs = new MutationObserver(() => {
-
-        const q = "div:last-child > div:last-child > " +
-          "div.aim div[style*='margin-left']"
-        const lbls = document.querySelectorAll(q);
-
-        if (lbls.length > 0) {
-          obs.disconnect();
-          resolve(lbls);
-        }
-      });
-
-      obs.observe(document, {childList: true, subtree: true});
-    });
   }
 
   // Helper to create event listeners
