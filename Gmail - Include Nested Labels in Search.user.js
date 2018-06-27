@@ -64,19 +64,23 @@
     });
   }
 
+  // Helper to create event listeners
+  function makeClickHandler(searchLabels) {
+    return (evt) => {
+      const input = document.getElementsByName("q")[0];
+      input.value = "label:{" + searchLabels + "}";
+      input.form.querySelector("button").click();
+
+      evt.stopPropagation();
+      evt.preventDefault();
+    };
+  }
+  
   // Change action when clicking on top level labels
   function modifyClickAction(lblData) {
 
     lblData.forEach((topLabel) => {
-
-      topLabel.clickTarget.addEventListener("click", (evt) => {
-        const input = document.getElementsByName("q")[0];
-        input.value = "label:{" + topLabel.searchLabels + "}";
-        input.form.querySelector("button").click();
-
-        evt.stopPropagation();
-        evt.preventDefault();
-      }, false);
+      topLabel.clickTarget.addEventListener("click", makeClickHandler(topLabel.searchLabels), false);
     });
   }
 
