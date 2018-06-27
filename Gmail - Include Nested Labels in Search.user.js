@@ -84,10 +84,24 @@
     });
   }
 
+  // Watch for future changes in the label list
+  function watchLabels(lblBox) {
+        
+    const obs = new MutationObserver((mutations) => {
+      const lbls = mutations.map((mutation) => mutation.addedNodes[0].querySelector("div[style*='margin-left']"));
+      const lblData = processLabels(lbls);
+      modifyClickAction(lblData);
+      
+    });
+    obs.observe(lblBox, {childList: true, subtree: true});
+  }
+
   async function modifyPage() {
     const lbls = await promiseLabels();
     const lblData = processLabels(lbls);
     modifyClickAction(lblData);
+    
+    watchLabels(lbls[0].parentNode.parentNode.parentNode);
   }
 
   modifyPage();
