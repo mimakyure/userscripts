@@ -31,7 +31,7 @@
         searchLabels = [];
 
         // Store info for setting up event listeners
-        topLabel = {clickTarget: lbl.parentNode.parentNode, searchLabels: ""};
+        topLabel = {clickTarget: link.parentNode.parentNode, searchLabels: ""};
 
         lblData.push(topLabel);
       }
