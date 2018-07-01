@@ -70,7 +70,7 @@
     return (evt) => {
       const input = document.getElementsByName("q")[0];
       input.value = "label:{" + searchLabels + "}";
-      input.form.querySelector("button").click();
+      input.form.querySelector("button:last-of-type").click();
 
       evt.stopPropagation();
       evt.preventDefault();
