@@ -38,29 +38,27 @@
   // Parse label hierarchy (This assumes max depth of 1 nested label)
   function processLabels(lbls) {
     const lblData = [];
-    let topLabel;
-    let searchLabels;
+    let searchLabels = [];
 
-    lbls.forEach((lbl) => {
-
-      // Label depth identified based on left margin
-      const marginLeft = lbl.style.marginLeft;
+    // Roll up nested labels into their parent label
+    for (let i = lbls.length - 1, lbl; lbl = lbls[i]; i--) {
 
       // Label names extracted from link
       const link = lbl.querySelector("a");
+      searchLabels.push("\"" + link.href.split("#label/").pop() + "\"");
 
-      if ("0px" === marginLeft) {
-        searchLabels = [];
+      // Label depth identified based on left margin
+      if ("0px" === lbl.style.marginLeft) {
 
         // Store info for setting up event listeners
-        topLabel = {clickTarget: link.parentNode.parentNode, searchLabels: ""};
+        if (searchLabels.length > 1) {
 
-        lblData.push(topLabel);
+          lblData.push({clickTarget: link.parentNode.parentNode, searchLabels: searchLabels.reverse().join(" ")});
+        }
+
+        searchLabels = [];
       }
-
-      searchLabels.push("\"" + link.href.split("#label/").pop() + "\"");
-      topLabel.searchLabels = searchLabels.join(" ");
-    });
+    };
 
     return lblData;
   }
