@@ -1,11 +1,11 @@
 // ==UserScript==
-// @name        Gmail - Include Nested Labels in Search
+// @name        Gmail - Include Nested Labels
 // @description Flattens label viewing in Gmail to include emails in nested labels
 // @include     https://mail.google.com/*
 // @version     1
 // @namespace   https://github.com/mimakyure
 // @grant       none
-// @updateURL   https://raw.github.com/mimakyure/Userscripts/master/Gmail - Include Nested Labels in Search.user.js
+// @updateURL   https://raw.github.com/mimakyure/Userscripts/master/Gmail - Include Nested Labels.user.js
 // @author      Matthew Imakyure <m.imakyure@gmail.com>
 // @license     MIT
 // ==/UserScript==
