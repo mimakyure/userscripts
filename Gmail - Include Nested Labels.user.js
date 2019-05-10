@@ -6,7 +6,7 @@
 // @namespace   https://github.com/mimakyure
 // @grant       none
 // @updateURL   https://raw.github.com/mimakyure/Userscripts/master/Gmail - Include Nested Labels.user.js
-// @author      Matthew Imakyure <m.imakyure@gmail.com>
+// @author      Matthew Imakyure
 // @license     MIT
 // ==/UserScript==
 
