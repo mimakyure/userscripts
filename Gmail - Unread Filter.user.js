@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name        Gmail - Unread Filter
-// @description Adds a toggle to persist 'is:unread' in email searches. Spam folder is ignored to allow Gmail's special handling.
+// @description Add controls to filter for unread emails and unread labels
 // @include     https://mail.google.com/*
-// @version     1.0
+// @version     2.0
 // @namespace   https://github.com/mimakyure
 // @grant       none
 // @updateURL   https://raw.github.com/mimakyure/Userscripts/master/Gmail - Unread Filter.user.js
@@ -11,7 +11,8 @@
 // ==/UserScript==
 
 /* TODO:
-1) Filter label list
+1) Find way to intercept and modify searches before they run, may need in-page script
+2) Code reorganization?
 */
 
 
@@ -59,10 +60,10 @@
     return document.getElementById(txt_id);
   }
 
-  // Create promise to watch for element matching xpath query as page loads
+  // Create promise to watch for element matching xpath query
   function promiseX(query) {
 
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
 
       const obs = new MutationObserver(() => {
 
@@ -98,7 +99,6 @@
 
   // Label filtering ===========================================================
 
-
   function activateLabelFilter(menu, env = $id(NAME + "-label")) {
 
     env.style.visibility = "visible";
@@ -126,13 +126,14 @@
   function updateReadLabels(lbls) {
 
     // Hide read labels with no unread sublabels
+    // sublabel_read set to 'true' to allow marking of initial/bottom label
     let prev_depth = "MAX";
     let is_read = false;
-    let sublabel_read = false;
+    let sublabel_read = true;
 
     for (let lbl of lbls) {
 
-      // Unread status indicated by presence of unread count
+      // Read status indicated unread count not being present
       let curr_depth = lbl.style.marginLeft;
       is_read = !lbl.querySelector("span + div");
 
@@ -279,7 +280,6 @@
   function shouldEmailFilter() {
 
     return !/#spam/.test(location.hash);
-
   }
 
   // Add search term for unread emails
@@ -318,22 +318,24 @@
 
     // Modify query to remove unread filter in search query
     const hash1 = decodeURIComponent(hash[1] || "").
-                  replace(/\+*\bis:unread\b/, "");
+                  replace(/\bis:unread\b/, "").replace(/\+/g, " ").trim();
 
     // View has a search string
     if (hash1) {
 
       // Handle special folders
-      if (/in:(snoozed|spam|drafts)/.test(hash1)) {
+      if (/in:(snoozed|spam|drafts|starred)/.test(hash1)) {
 
         new_hash = "#" + RegExp.$1;
 
+      // Modify search
       } else {
 
         new_hash = hash[0] + "/" + encodeURIComponent(hash1);
       }
     }
 
+    // Go back to inbox if no search string
     location.hash = new_hash;
   }
 
