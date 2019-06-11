@@ -37,20 +37,24 @@
   }
 
   // Return first result of xpath query
-  function xf(xp, context) {
-    return document.evaluate(xp, context || document, null,
+  function $xf(query, context) {
+    return document.evaluate(query, context || document, null,
       XPathResult.FIRST_ORDERED_NODE_TYPE, null, null).singleNodeValue;
   }
 
-  // Create promise to watch for element matching xpath query as page loads
-  function promiseX(xp_query) {
+  // Return element by id
+  function $id(txt_id) {
+    return document.getElementById(txt_id);
+  }
 
+  // Create promise to watch for element matching xpath query as page loads
+  function promiseX(query) {
 
     return new Promise((resolve) => {
 
       const obs = new MutationObserver(() => {
 
-        const res = xf(xp_query);
+        const res = $xf(query);
 
         if (res) {
           obs.disconnect();
@@ -99,8 +103,7 @@
   // Add search term for unread emails
   function addFilter() {
 
-    const status = document.getElementById(NAME + "-status");
-    status.checked = true;
+    $id(NAME + "-status").checked = true;
 
     if (!hasFilter() && shouldFilter()) {
 
@@ -125,11 +128,10 @@
   // Remove search for unread emails
   function removeFilter() {
 
-    const status = document.getElementById(NAME + "-status");
     const hash = location.hash.split("/");
     let new_hash = "#inbox";
 
-    status.checked = false;
+    $id(NAME + "-status").checked = false;
     filter_active = false;
 
     // Modify query to remove unread filter in search query
@@ -153,6 +155,14 @@
     location.hash = new_hash;
   }
 
+  // Check if filter has been manually deleted
+  function filterDeleted(evt) {
+
+    if (email_active && !/\bis:(?:un)?read\b/.test(evt.currentTarget.value)) {
+      filter_deleted = true;
+    }
+  }
+
   // Maintain filter search term
   function persistFilter() {
 
@@ -171,12 +181,7 @@
   function watchSearch(q) {
 
     // Prepare to unset filter on search execution if manually deleted
-    q.addEventListener("input", () => {
-
-      if (filter_active && !/\bis:(?:un)?read\b/.test(q.value)) {
-        filter_deleted = true;
-      }
-    });
+    q.addEventListener("input", filterDeleted);
 
     // Monitor changes in the url hash
     window.addEventListener("hashchange", persistFilter);
@@ -195,26 +200,6 @@
       removeFilter();
 
     }
-  }
-
-  // Add button to control filtering
-  function addToggle(q) {
-
-    const toggle = document.createElement("button");
-    toggle.id = NAME + "-toggle";
-    toggle.type = "button";
-    toggle.innerHTML = `<label>
-                          <input id='` + NAME + `-status' 
-                            type='checkbox' 
-                            style='margin: 0 5px; vertical-align: middle;'>
-                            Unread
-                        </label>`;
-
-    toggle.addEventListener("click", toggleEmailFilter);
-
-    q.form.parentNode.insertBefore(toggle, q.form.parentNode.firstChild);
-
-    return toggle;
   }
 
   // Style toggle button to match compose button style
@@ -250,11 +235,31 @@
       + focus_style + `}`);
   }
 
-  async function modifyPage() {
-    addStyle("." + NAME + "-read-label { display: none; }");
+  // Add button to toggle email filtering
+  function addEmailFilterToggle(q) {
+
+    const toggle = document.createElement("button");
+    toggle.id = NAME + "-toggle";
+    toggle.type = "button";
+    toggle.innerHTML = `<label>
+                          <input id='` + NAME + `-status'
+                            type='checkbox'
+                            style='margin: 0 5px; vertical-align: middle;'>
+                            Unread
+                        </label>`;
+
+    toggle.addEventListener("click", toggleEmailFilter);
+
+    q.form.parentNode.insertBefore(toggle, q.form.parentNode.firstChild);
+
+    return toggle;
+  }
+
+  // Add controls and monitoring for email filtering
+  async function setupEmailFilter() {
 
     const q = await promiseX("//input[@name='q']");
-    const toggle = addToggle(q);
+    const toggle = addEmailFilterToggle(q);
 
     if (filter_active) {
       addFilter();
@@ -266,7 +271,7 @@
     styleToggle(toggle, btn);
   }
 
-  modifyPage();
+  setupEmailFilter();
 
 
 })();
