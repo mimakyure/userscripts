@@ -21,19 +21,31 @@
 
   const NAME = "gm-gmail-unread-filter";
 
-  // Retrive filter setting, default to filter on
-  let filter_active = !(localStorage.getItem(NAME + "-active") === "false");
+  // Retrieve filter settings
+  // Default email to filter to on, label filter to off
+  let email_active = !(localStorage.getItem(NAME + "-email") === "false");
+  let label_active = (localStorage.getItem(NAME + "-label") === "true");
+
   // Track manual removal of email filter
   let filter_deleted = false;
+
 
   // Helper functions ==========================================================
 
   // Add styles to the page for inserted controls
-  function addStyle(css) {
+  function addStyle(css, text_id) {
     const ss = document.createElement("style");
     ss.type = "text/css";
     ss.textContent = css;
+    if (text_id) {
+      ss.id = text_id;
+    }
     document.head.appendChild(ss);
+  }
+
+  // Return querySelectorAll result
+  function $qsa(sel, elm) {
+    return (elm || document).querySelectorAll(sel);
   }
 
   // Return first result of xpath query
@@ -83,10 +95,180 @@
     return style_rules;
   }
 
-  // Page specific functions ===================================================
+
+  // Label filtering ===========================================================
+
+
+  function activateLabelFilter(menu, env = $id(NAME + "-label")) {
+
+    env.style.visibility = "visible";
+
+    // Clip menu icon to make space for filter icon
+    menu.querySelector("svg").style.clipPath =
+      "polygon(0 0, 100% 0, 100% 60%, 55% 60%, 55% 100%, 0 100%)";
+
+    label_active = true;
+
+    $id(NAME + "-style").disabled = false;
+  }
+
+  function removeLabelFilter(menu, env = $id(NAME + "-label")) {
+
+    env.style.visibility = "hidden";
+    menu.querySelector("svg").style.clipPath = "";
+
+    label_active = false;
+
+    $id(NAME + "-style").disabled = true;
+  }
+
+  // Mark labels to hide, analyzing from the last to first label
+  function updateReadLabels(lbls) {
+
+    // Hide read labels with no unread sublabels
+    let prev_depth = "MAX";
+    let is_read = false;
+    let sublabel_read = false;
+
+    for (let lbl of lbls) {
+
+      // Unread status indicated by presence of unread count
+      let curr_depth = lbl.style.marginLeft;
+      is_read = !lbl.querySelector("span + div");
+
+      // Hide label if it is read and doesn't have unread sublabels
+      if (is_read) {
+
+        if (!(!sublabel_read && curr_depth < prev_depth)) {
+
+          lbl.setAttribute(NAME + "-read-sublabel", "");
+        }
+      } else {
+
+        lbl.removeAttribute(NAME + "-read-sublabel");
+        sublabel_read = false;
+      }
+
+      // Reset count when reaching top
+      if (curr_depth == "0px") {
+
+        sublabel_read = false;
+      }
+
+      prev_depth = curr_depth;
+    }
+  }
+
+  // Initialize and monitor label changes
+  async function watchLabels() {
+
+    const xp = "//div[@id]/div[position()>1]//" +
+               "div[contains(@style,'margin-left')]/../../..";
+    const lbl_box = await promiseX(xp);
+
+    // Hide labels based on initial status
+    const sel = "div[style*='margin-left']";
+    updateReadLabels(Array.from($qsa(sel, lbl_box)).reverse());
+
+    // Trigger update for all mutations since all affect label list
+    const obs = new MutationObserver(() => {
+
+      updateReadLabels(Array.from($qsa(sel, lbl_box)).reverse());
+    });
+
+    obs.observe(lbl_box, { childList: true, subtree: true });
+  }
+
+
+  // Modify menu button to add view for unread labels
+  function toggleLabelFilter(evt) {
+
+    const menu = $xf("ancestor-or-self::div[@aria-expanded]", evt.target);
+    const exp = menu.getAttribute("aria-expanded");
+
+    // Label view cycles from ... -> All -> Unread -> Collapsed -> ...
+    // Only need to modify behavior if labels are expanded
+    if ("true" === exp) {
+
+      // "Unread" state
+      if (label_active) {
+
+        removeLabelFilter(menu);
+
+        // "All" state
+      } else {
+
+        activateLabelFilter(menu);
+
+        if (evt) {
+
+          evt.stopPropagation();
+        }
+      }
+
+      localStorage.setItem(NAME + "-label", label_active)
+    }
+  }
+
+  async function addLabelFilterToggle() {
+
+    // Envelope character to indicate filter active
+    const env = document.createElement("div");
+    env.id = NAME + "-label";
+    env.innerHTML = "&#9993;"
+    env.style = `height:   1ex;
+                 line-height: 1ex;
+                 position:  absolute;
+                 bottom:   13px;
+                 right:    9px;`;
+
+    // SVG belongs to different namespace so use local-name() to get element
+    const menu = await promiseX("//*[local-name()='svg']/parent::div[@role]");
+    menu.style.position = "relative";
+
+    // Add inner element to catch clicks before handler toggles menu visibility
+    const clicker = document.createElement("div");
+
+    // Mirror style components of parent menu
+    clicker.style = `position: absolute;
+                     top:   0;
+                     left:   0;
+                     height:  24px;
+                     width:  24px;
+                     padding: 12px;`;
+    menu.appendChild(clicker);
+
+    if (label_active) {
+
+      activateLabelFilter(menu, env);
+
+    } else {
+
+      removeLabelFilter(menu, env);
+    }
+
+    clicker.appendChild(menu.firstChild);
+    clicker.appendChild(env);
+    clicker.addEventListener("click", toggleLabelFilter, true);
+  }
+
+  // Attach filter toggle to menu button and insert indicator for filter active
+  function setupLabelFilter() {
+
+    addStyle(`div[` + NAME + `-read-sublabel] {
+                display: none;
+              }`, NAME + "-style");
+
+    addLabelFilterToggle();
+
+    watchLabels();
+  }
+
+
+  // Email filtering ===========================================================
 
   // Test if read filter in place
-  function hasFilter() {
+  function hasEmailFilter() {
 
     const hash = location.hash.split("/");
     return hash.length > 1 &&
@@ -94,18 +276,18 @@
   }
 
   // Don't filter spam folder since GMail adds special commands for this folder
-  function shouldFilter() {
+  function shouldEmailFilter() {
 
     return !/#spam/.test(location.hash);
 
   }
 
   // Add search term for unread emails
-  function addFilter() {
+  function addEmailFilter() {
 
     $id(NAME + "-status").checked = true;
 
-    if (!hasFilter() && shouldFilter()) {
+    if (!hasEmailFilter() && shouldEmailFilter()) {
 
       const hash = location.hash.split("/");
 
@@ -126,18 +308,19 @@
   }
 
   // Remove search for unread emails
-  function removeFilter() {
+  function removeEmailFilter() {
 
     const hash = location.hash.split("/");
     let new_hash = "#inbox";
 
     $id(NAME + "-status").checked = false;
-    filter_active = false;
+    email_active = false;
 
     // Modify query to remove unread filter in search query
     const hash1 = decodeURIComponent(hash[1] || "").
                   replace(/\+*\bis:unread\b/, "");
 
+    // View has a search string
     if (hash1) {
 
       // Handle special folders
@@ -151,29 +334,29 @@
       }
     }
 
-
     location.hash = new_hash;
   }
 
   // Check if filter has been manually deleted
-  function filterDeleted(evt) {
+  function checkEmailFilterDeleted(evt) {
 
     if (email_active && !/\bis:(?:un)?read\b/.test(evt.currentTarget.value)) {
+
       filter_deleted = true;
     }
   }
 
   // Maintain filter search term
-  function persistFilter() {
+  function persistEmailFilter() {
 
     if (filter_deleted) {
 
-      removeFilter();
+      removeEmailFilter();
       filter_deleted = false;
 
-    } else if (filter_active) {
+    } else if (email_active) {
 
-      addFilter();
+      addEmailFilter();
     }
   }
 
@@ -181,29 +364,30 @@
   function watchSearch(q) {
 
     // Prepare to unset filter on search execution if manually deleted
-    q.addEventListener("input", filterDeleted);
+    q.addEventListener("input", checkEmailFilterDeleted);
 
     // Monitor changes in the url hash
-    window.addEventListener("hashchange", persistFilter);
+    window.addEventListener("hashchange", persistEmailFilter);
   }
 
   // Switch filter state and update search
-  function toggleFilter(evt) {
+  function toggleEmailFilter(evt) {
 
-    filter_active = !filter_active;
-    localStorage.setItem(NAME + "-active", filter_active);
+    email_active = !email_active;
+    localStorage.setItem(NAME + "-email", email_active);
 
-    if (filter_active) {
-      addFilter();
+    if (email_active) {
+
+      addEmailFilter();
 
     } else {
-      removeFilter();
 
+      removeEmailFilter();
     }
   }
 
   // Style toggle button to match compose button style
-  function styleToggle(toggle, btn) {
+  function styleEmailToggle(toggle, btn) {
 
     let style = stringifyStyle(btn);
 
@@ -230,9 +414,9 @@
     // Add styling for filter toggle button
     addStyle(
       `button#` + NAME + `-toggle {`
-      + style + `}
-    button#` + NAME + `-toggle:hover, button#` + NAME + `-toggle:focus {`
-      + focus_style + `}`);
+         + style + `}
+       button#` + NAME + `-toggle:hover, button#` + NAME + `-toggle:focus {`
+         + focus_style + `}`);
   }
 
   // Add button to toggle email filtering
@@ -261,16 +445,21 @@
     const q = await promiseX("//input[@name='q']");
     const toggle = addEmailFilterToggle(q);
 
-    if (filter_active) {
-      addFilter();
+    if (email_active) {
+
+      addEmailFilter();
     }
     watchSearch(q);
 
     const xp = "//div[@role='button'][contains(text(),'Compose')]";
     const btn = await promiseX(xp);
-    styleToggle(toggle, btn);
+    styleEmailToggle(toggle, btn);
   }
 
+
+  // Add label and email filters to page =======================================
+
+  setupLabelFilter();
   setupEmailFilter();
 
 
