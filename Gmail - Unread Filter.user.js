@@ -137,7 +137,7 @@
       } else {
 
         // Extra special handling for spam filter since filtering is never applied
-        new_hash = (hash[0] == "#spam") ? "#spam" : hash[0] + "/" + encodeURIComponent(hash1);
+        new_hash = hash[0] + "/" + encodeURIComponent(hash1);
 
       }
     }
