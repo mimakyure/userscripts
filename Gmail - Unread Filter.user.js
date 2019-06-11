@@ -17,17 +17,18 @@
 
 (() => {
 
-  // Script variables ==========================================================================
+  // Script variables ==========================================================
 
   const NAME = "gm-gmail-unread-filter";
 
   // Retrive filter setting, default to filter on
   let filter_active = !(localStorage.getItem(NAME + "-active") === "false");
+  // Track manual removal of email filter
   let filter_deleted = false;
 
-  // Helper functions ==========================================================================
+  // Helper functions ==========================================================
 
-  // Add stylesheet to the page
+  // Add styles to the page for inserted controls
   function addStyle(css) {
     const ss = document.createElement("style");
     ss.type = "text/css";
@@ -42,7 +43,8 @@
   }
 
   // Create promise to watch for element matching xpath query as page loads
-  function makePromise(xp_query) {
+  function promiseX(xp_query) {
+
 
     return new Promise((resolve) => {
 
@@ -77,13 +79,14 @@
     return style_rules;
   }
 
-  // Page specific functions =================================================================
+  // Page specific functions ===================================================
 
   // Test if read filter in place
   function hasFilter() {
 
     const hash = location.hash.split("/");
-    return hash.length > 1 && /\bis:(?:un)?read\b/.test(decodeURIComponent(hash[1]));
+    return hash.length > 1 &&
+           /\bis:(?:un)?read\b/.test(decodeURIComponent(hash[1]));
   }
 
   // Don't filter spam folder since GMail adds special commands for this folder
@@ -103,14 +106,19 @@
 
       const hash = location.hash.split("/");
 
-      let fldrString = "";
+      let fldr_str = "";
+
+      // Use 'in:' handling for special labels
       if (!/#inbox|#search/.test(hash[0])) {
-        fldrString = (hash[0] == "#label") ? "label:" : hash[0].replace("#", "in:") + " ";
+
+        fldr_str = (hash[0] == "#label") ?
+          "label:" :
+          hash[0].replace("#", "in:") + " ";
       }
 
-      const srchString = fldrString + ((hash[1] || "") + " is:unread").trim();
+      const srch_str = fldr_str + ((hash[1] || "") + " is:unread").trim();
 
-      location.hash = "#search/" + srchString;
+      location.hash = "#search/" + srch_str;
     }
   }
 
@@ -125,7 +133,8 @@
     filter_active = false;
 
     // Modify query to remove unread filter in search query
-    const hash1 = decodeURIComponent(hash[1] || "").replace(/\+*\bis:unread\b/, "");
+    const hash1 = decodeURIComponent(hash[1] || "").
+                  replace(/\+*\bis:unread\b/, "");
 
     if (hash1) {
 
@@ -136,9 +145,7 @@
 
       } else {
 
-        // Extra special handling for spam filter since filtering is never applied
         new_hash = hash[0] + "/" + encodeURIComponent(hash1);
-
       }
     }
 
@@ -166,7 +173,7 @@
     // Prepare to unset filter on search execution if manually deleted
     q.addEventListener("input", () => {
 
-      if (filter_active && !/\bis:(?:un)?read\b/.test(q.value)) {console.log("remove");
+      if (filter_active && !/\bis:(?:un)?read\b/.test(q.value)) {
         filter_deleted = true;
       }
     });
@@ -196,9 +203,14 @@
     const toggle = document.createElement("button");
     toggle.id = NAME + "-toggle";
     toggle.type = "button";
-    toggle.innerHTML = "<label><input id='" + NAME + "-status' type='checkbox' style='margin: 0 5px; vertical-align: middle;'>Unread</label>";
+    toggle.innerHTML = `<label>
+                          <input id='` + NAME + `-status' 
+                            type='checkbox' 
+                            style='margin: 0 5px; vertical-align: middle;'>
+                            Unread
+                        </label>`;
 
-    toggle.addEventListener("click", toggleFilter, false);
+    toggle.addEventListener("click", toggleEmailFilter);
 
     q.form.parentNode.insertBefore(toggle, q.form.parentNode.firstChild);
 
@@ -207,6 +219,8 @@
 
   // Style toggle button to match compose button style
   function styleToggle(toggle, btn) {
+
+    let style = stringifyStyle(btn);
 
     // Adjust specific CSS properties
     Object.assign(toggle.style, {
@@ -220,26 +234,26 @@
       transform: "perspective(1px) translateY(-50%)"
     });
 
-    // Transform style properties into stylesheet rules
-    let style = stringifyStyle(btn);
-
-    // Manually set focus style as can't seem to grab with script (style applied using dynamic class name)
+    // Manually set focus style as can't seem to grab via script as
+    // style applied using dynamic class name
     const cs = getComputedStyle(btn);
     const bs_color = cs["box-shadow"].match(/(rgb[^)]*\))/);
-    const focus_style = "box-shadow: 0px 1px 2px 0px " + bs_color[0] + ", 0px 2px 4px 1px " + bs_color[1] + "; background-color: rgb(250,250,251)";
+    const focus_style = "box-shadow: 0px 1px 2px 0px " + bs_color[0] +
+      ", 0px 2px 4px 1px " + bs_color[1] +
+      "; background-color: rgb(250,250,251)";
 
     // Add styling for filter toggle button
     addStyle(
       `button#` + NAME + `-toggle {`
-        + style + `}
-       button#` + NAME + `-toggle:hover, button#` + NAME + `-toggle:focus {`
-        + focus_style + `}`);
+      + style + `}
+    button#` + NAME + `-toggle:hover, button#` + NAME + `-toggle:focus {`
+      + focus_style + `}`);
   }
 
   async function modifyPage() {
     addStyle("." + NAME + "-read-label { display: none; }");
 
-    const q = await makePromise("//input[@name='q']");
+    const q = await promiseX("//input[@name='q']");
     const toggle = addToggle(q);
 
     if (filter_active) {
@@ -247,7 +261,8 @@
     }
     watchSearch(q);
 
-    const btn = await makePromise("//div[@role='button'][contains(text(),'Compose') or contains(text(),'COMPOSE')]");
+    const xp = "//div[@role='button'][contains(text(),'Compose')]";
+    const btn = await promiseX(xp);
     styleToggle(toggle, btn);
   }
 
