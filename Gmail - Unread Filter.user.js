@@ -23,9 +23,9 @@
   const NAME = "gm-gmail-unread-filter";
 
   // Retrieve filter settings
-  // Default email to filter to on, label filter to off
+  // Default email to filter to on, label filter to on
   let email_active = !(localStorage.getItem(NAME + "-email") === "false");
-  let label_active = (localStorage.getItem(NAME + "-label") === "true");
+  let label_active = !(localStorage.getItem(NAME + "-label") === "false");
 
   // Track manual removal of email filter
   let filter_deleted = false;
