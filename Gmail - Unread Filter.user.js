@@ -1,20 +1,20 @@
 // ==UserScript==
 // @name        Gmail - Unread Filter
-// @description Add controls to filter for unread emails and unread labels
-// @include     https://mail.google.com/*
-// @version     2.0
+// @description Add controls to filter for unread emails and labels
 // @namespace   https://github.com/mimakyure
-// @grant       none
-// @updateURL   https://raw.github.com/mimakyure/Userscripts/master/Gmail - Unread Filter.user.js
 // @author      mimakyure
+// @version     2.0.0
+// @grant       none
+// @match       https://mail.google.com/*
+// @homepageURL https://github.com/mimakyure/Userscripts
+// @supportURL  https://github.com/mimakyure/Userscripts/issues
+// @updateURL   https://raw.github.com/mimakyure/Userscripts/master/Gmail - Unread Filter.user.js
 // @license     MIT
 // ==/UserScript==
 
 /* TODO:
-1) Find way to intercept and modify searches before they run, may need in-page script
-2) Code reorganization?
+   - Avoid double search when unread condition is added to newly completed search
 */
-
 
 (() => {
 
