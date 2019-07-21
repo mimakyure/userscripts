@@ -3,7 +3,7 @@
 // @description Add controls to filter for unread emails and labels
 // @namespace   https://github.com/mimakyure
 // @author      mimakyure
-// @version     2.0.0
+// @version     2.0.1
 // @grant       none
 // @match       https://mail.google.com/*
 // @homepageURL https://github.com/mimakyure/Userscripts
@@ -20,12 +20,12 @@
 
   // Script variables ==========================================================
 
-  const NAME = "gm-gmail-unread-filter";
+  const NS = "gm-gmail-unread-filter";
 
   // Retrieve filter settings
   // Default email to filter to on, label filter to on
-  let email_active = !(localStorage.getItem(NAME + "-email") === "false");
-  let label_active = !(localStorage.getItem(NAME + "-label") === "false");
+  let email_active = !(localStorage.getItem(`${NS}-email`) === "false");
+  let label_active = !(localStorage.getItem(`${NS}-label`) === "false");
 
   // Track manual removal of email filter
   let filter_deleted = false;
@@ -35,9 +35,10 @@
 
   // Add styles to the page for inserted controls
   function addStyle(css, text_id) {
+
     const ss = document.createElement("style");
-    ss.type = "text/css";
     ss.textContent = css;
+
     if (text_id) {
       ss.id = text_id;
     }
@@ -45,25 +46,17 @@
   }
 
   // Return querySelectorAll result
-  function $qsa(sel, elm) {
-    return (elm || document).querySelectorAll(sel);
-  }
+  const $qsa = (sel, elm) => (elm || document).querySelectorAll(sel);
 
   // Return first result of xpath query
-  function $xf(query, context) {
-    return document.evaluate(query, context || document, null,
-      XPathResult.FIRST_ORDERED_NODE_TYPE, null, null).singleNodeValue;
-  }
+  const $xf = (query, context) => document.evaluate(query, context || document,
+      null, XPathResult.FIRST_ORDERED_NODE_TYPE, null, null).singleNodeValue;
 
   // Return element by id
-  function $id(txt_id) {
-    return document.getElementById(txt_id);
-  }
+  const $id = txt_id => document.getElementById(txt_id);
 
   // Create promise to watch for element matching xpath query
-  function promiseX(query) {
-
-    return new Promise(resolve => {
+  const $promiseX = query => new Promise(resolve => {
 
       const obs = new MutationObserver(() => {
 
@@ -76,50 +69,49 @@
       });
 
       obs.observe(document, {childList: true, subtree: true});
-    })
-  }
+    });
 
   // Convert style declaration to string
   function stringifyStyle(elm) {
+
     const cs = getComputedStyle(elm);
-    let style_rules = "";
+    let rules = "";
 
-    for (var n_prop in cs) {
+    for (var prop in cs) {
 
-      if (cs.hasOwnProperty(n_prop)) {
+      if (cs.hasOwnProperty(prop)) {
 
-        style_rules = style_rules + cs[n_prop] + ":" +
-          cs.getPropertyValue(cs[n_prop]) + ";";
+        rules = `${rules}${cs[prop]}: ${cs.getPropertyValue(cs[prop])};`;
       }
     }
 
-    return style_rules;
+    return rules;
   }
 
 
   // Label filtering ===========================================================
 
-  function activateLabelFilter(menu, env = $id(NAME + "-label")) {
+  function activateLabelFilter(menu, env = $id(`${NS}-label`)) {
 
     env.style.visibility = "visible";
 
     // Clip menu icon to make space for filter icon
     menu.querySelector("svg").style.clipPath =
-      "polygon(0 0, 100% 0, 100% 60%, 55% 60%, 55% 100%, 0 100%)";
+        "polygon(0 0, 100% 0, 100% 60%, 55% 60%, 55% 100%, 0 100%)";
 
     label_active = true;
 
-    $id(NAME + "-style").disabled = false;
+    $id(`${NS}-style`).disabled = false;
   }
 
-  function removeLabelFilter(menu, env = $id(NAME + "-label")) {
+  function removeLabelFilter(menu, env = $id(`${NS}-label`)) {
 
     env.style.visibility = "hidden";
     menu.querySelector("svg").style.clipPath = "";
 
     label_active = false;
 
-    $id(NAME + "-style").disabled = true;
+    $id(`${NS}-style`).disabled = true;
   }
 
   // Mark labels to hide, analyzing from the last to first label
@@ -131,7 +123,7 @@
     let is_read = false;
     let sublabel_read = true;
 
-    for (let lbl of lbls) {
+    for (const lbl of lbls) {
 
       // Read status indicated unread count not being present
       let curr_depth = lbl.style.marginLeft;
@@ -142,11 +134,11 @@
 
         if (!(!sublabel_read && curr_depth < prev_depth)) {
 
-          lbl.setAttribute(NAME + "-read-sublabel", "");
+          lbl.setAttribute(`${NS}-read-sublabel`, "");
         }
       } else {
 
-        lbl.removeAttribute(NAME + "-read-sublabel");
+        lbl.removeAttribute(`${NS}-read-sublabel`);
         sublabel_read = false;
       }
 
@@ -165,7 +157,7 @@
 
     const xp = "//div[@id]/div[position()>1]//" +
                "div[contains(@style,'margin-left')]/../../..";
-    const lbl_box = await promiseX(xp);
+    const lbl_box = await $promiseX(xp);
 
     // Hide labels based on initial status
     const sel = "div[style*='margin-left']";
@@ -207,7 +199,7 @@
         }
       }
 
-      localStorage.setItem(NAME + "-label", label_active)
+      localStorage.setItem(`${NS}-label`, label_active)
     }
   }
 
@@ -215,16 +207,16 @@
 
     // Envelope character to indicate filter active
     const env = document.createElement("div");
-    env.id = NAME + "-label";
+    env.id = `${NS}-label`;
     env.innerHTML = "&#9993;"
-    env.style = `height:   1ex;
+    env.style = `height:      1ex;
                  line-height: 1ex;
-                 position:  absolute;
-                 bottom:   13px;
-                 right:    9px;`;
+                 position:    absolute;
+                 bottom:      13px;
+                 right:       9px;`;
 
     // SVG belongs to different namespace so use local-name() to get element
-    const menu = await promiseX("//*[local-name()='svg']/parent::div[@role]");
+    const menu = await $promiseX("//*[local-name()='svg']/parent::div[@role]");
     menu.style.position = "relative";
 
     // Add inner element to catch clicks before handler toggles menu visibility
@@ -232,11 +224,11 @@
 
     // Mirror style components of parent menu
     clicker.style = `position: absolute;
-                     top:   0;
-                     left:   0;
-                     height:  24px;
-                     width:  24px;
-                     padding: 12px;`;
+                     top:      0;
+                     left:     0;
+                     height:   24px;
+                     width:    24px;
+                     padding:  12px;`;
     menu.appendChild(clicker);
 
     if (label_active) {
@@ -256,12 +248,11 @@
   // Attach filter toggle to menu button and insert indicator for filter active
   function setupLabelFilter() {
 
-    addStyle(`div[` + NAME + `-read-sublabel] {
+    addStyle(`div[${NS}-read-sublabel] {
                 display: none;
-              }`, NAME + "-style");
+              }`, `${NS}-style`);
 
     addLabelFilterToggle();
-
     watchLabels();
   }
 
@@ -285,7 +276,7 @@
   // Add search term for unread emails
   function addEmailFilter() {
 
-    $id(NAME + "-status").checked = true;
+    $id(`${NS}-status`).checked = true;
 
     if (!hasEmailFilter() && shouldEmailFilter()) {
 
@@ -297,45 +288,44 @@
       if (!/#inbox|#search/.test(hash[0])) {
 
         fldr_str = (hash[0] == "#label") ?
-          "label:" :
-          hash[0].replace("#", "in:") + " ";
+                   "label:" : `${hash[0].replace("#", "in:")} `;
       }
 
-      const srch_str = fldr_str + ((hash[1] || "") + " is:unread").trim();
+      const srch_str = `${fldr_str}${hash[1] ? `${hash[1]} ` : ""}is:unread`;
 
-      location.hash = "#search/" + srch_str;
+      location.hash = `#search/${srch_str}`;
     }
   }
 
-  // Remove search for unread emails
+  // Remove unread emails search parameter
   function removeEmailFilter() {
 
     const hash = location.hash.split("/");
+
+    // Go back to inbox if no search query
     let new_hash = "#inbox";
 
-    $id(NAME + "-status").checked = false;
+    $id(`${NS}-status`).checked = false;
     email_active = false;
 
-    // Modify query to remove unread filter in search query
-    const hash1 = decodeURIComponent(hash[1] || "").
-                  replace(/\bis:unread\b/, "").replace(/\+/g, " ").trim();
-
     // View has a search string
-    if (hash1) {
+    if (hash[1]) {
+
+      const hash1 = decodeURIComponent(hash[1]).
+                    replace(/\bis:unread\b/, "").replace(/\+/g, " ").trim();
 
       // Handle special folders
       if (/in:(snoozed|spam|drafts|starred)/.test(hash1)) {
 
-        new_hash = "#" + RegExp.$1;
+        new_hash = `#${RegExp.$1}`;
 
       // Modify search
       } else {
 
-        new_hash = hash[0] + "/" + encodeURIComponent(hash1);
+        new_hash = `${hash[0]}/${encodeURIComponent(hash1)}`;
       }
     }
 
-    // Go back to inbox if no search string
     location.hash = new_hash;
   }
 
@@ -376,7 +366,7 @@
   function toggleEmailFilter(evt) {
 
     email_active = !email_active;
-    localStorage.setItem(NAME + "-email", email_active);
+    localStorage.setItem(`${NS}-email`, email_active);
 
     if (email_active) {
 
@@ -395,13 +385,13 @@
 
     // Adjust specific CSS properties
     Object.assign(toggle.style, {
-      display: "block",
-      float: "right",
-      width: "auto",
-      height: "auto",
-      margin: "0 5px",
-      padding: "0 15px 0 11px",
-      top: "50%",
+      display:   "block",
+      float:     "right",
+      width:     "auto",
+      height:    "auto",
+      margin:    "0 5px",
+      padding:   "0 15px 0 11px",
+      top:       "50%",
       transform: "perspective(1px) translateY(-50%)"
     });
 
@@ -409,28 +399,37 @@
     // style applied using dynamic class name
     const cs = getComputedStyle(btn);
     const bs_color = cs["box-shadow"].match(/(rgb[^)]*\))/);
-    const focus_style = "box-shadow: 0px 1px 2px 0px " + bs_color[0] +
-      ", 0px 2px 4px 1px " + bs_color[1] +
-      "; background-color: rgb(250,250,251)";
+    const focus_style = `box-shadow: 0px 1px 2px 0 ${bs_color[0]},
+                           0 2px 4px 1px ${bs_color[1]};
+                         background-color: rgb(250,250,251)`;
 
     // Add styling for filter toggle button
     addStyle(
-      `button#` + NAME + `-toggle {`
-         + style + `}
-       button#` + NAME + `-toggle:hover, button#` + NAME + `-toggle:focus {`
-         + focus_style + `}`);
+      `#${NS}-toggle {
+         ${style}
+       }
+       #${NS}-toggle:hover,
+       #${NS}-toggle:focus {
+         ${focus_style}
+       }
+       #${NS}-toggle * {
+         cursor: pointer;
+       }
+       #${NS}-status {
+         margin: 0 5px;
+         vertical-align: middle;
+       }`);
   }
 
   // Add button to toggle email filtering
   function addEmailFilterToggle(q) {
 
     const toggle = document.createElement("button");
-    toggle.id = NAME + "-toggle";
+    toggle.id = `${NS}-toggle`;
     toggle.type = "button";
     toggle.innerHTML = `<label>
-                          <input id='` + NAME + `-status'
-                            type='checkbox'
-                            style='margin: 0 5px; vertical-align: middle;'>
+                          <input id='${NS}-status'
+                            type='checkbox'>
                             Unread
                         </label>`;
 
@@ -444,7 +443,7 @@
   // Add controls and monitoring for email filtering
   async function setupEmailFilter() {
 
-    const q = await promiseX("//input[@name='q']");
+    const q = await $promiseX("//input[@name='q']");
     const toggle = addEmailFilterToggle(q);
 
     if (email_active) {
@@ -454,7 +453,7 @@
     watchSearch(q);
 
     const xp = "//div[@role='button'][contains(text(),'Compose')]";
-    const btn = await promiseX(xp);
+    const btn = await $promiseX(xp);
     styleEmailToggle(toggle, btn);
   }
 
