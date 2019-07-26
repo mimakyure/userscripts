@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        Prev-Next Navigation Hotkeys
-// @description Adds left/right arrow hotkeys to navigate prev/next links in page
+// @description Adds left/right arrow hotkeys to navigate 'next'/'prev' links
 // @namespace   https://github.com/mimakyure
 // @author      mimakyure
 // @version     1.0.0
@@ -44,14 +44,12 @@
 
   function init() {
 
-    // Don't match non-targeted words starting with 'prev'
-    const prev = $xf(
-      "//a[starts-with(translate(.,'PREV','prev'),'prev ')]|" +
-      "//a[starts-with(translate(.,'PREVIOUS','previous'),'previous')]|" +
-      "//a[translate(substring(.,string-length(.)-string-length('prev')+1)," +
-        "'PREV','prev')='prev']");
+    // Use additional criteria to limit chances of incorrect matching of words starting with 'prev'
+    const prev = $xf("//a[starts-with(translate(.,'PREV','prev'),'prev ')]|" +
+                     "//a[contains(translate(.,'PREVIOUS','previous'),'previous')]|" +
+                     "//a[translate(substring(.,string-length(.)-string-length('prev')+1),'PREV','prev')='prev']");
 
-    const next = $xf("//a[starts-with(translate(.,'NEXT','next'),'next')]");
+    const next = $xf("//a[contains(translate(.,'NEXT','next'),'next')]");
 
     if (prev || next) {
       window.addEventListener("keyup", navigatePage.bind(null, prev, next));
