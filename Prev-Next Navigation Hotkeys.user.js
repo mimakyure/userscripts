@@ -3,8 +3,10 @@
 // @description Adds left/right arrow hotkeys to navigate 'next'/'prev' links
 // @namespace   https://github.com/mimakyure
 // @author      mimakyure
-// @version     1.0.0
-// @grant       GM.openInTab 
+// @version     1.1.0
+// @require     https://greasemonkey.github.io/gm4-polyfill/gm4-polyfill.js
+// @grant       GM.openInTab
+// @grant       GM_openInTab
 // @match       https://*/*
 // @match       http://*/*
 // @homepageURL https://github.com/mimakyure/Userscripts
@@ -16,17 +18,14 @@
 
 (() => {
 
-  function $xf(query) {
-    return document.evaluate(query, document, null,
-           XPathResult.FIRST_ORDERED_NODE_TYPE, null, null).singleNodeValue;
-  }
+  const $xf = query => document.evaluate(query, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null, null).singleNodeValue;
+
 
   function navigatePage(prev, next, evt) {
 
     // Do not navigate if text is being edited
-    if (evt.target.nodeName == "INPUT" ||
-        evt.target.nodeName == "TEXTAREA" ||
-        evt.target.isContentEditable) {
+    if (evt.target.nodeName == "INPUT" || evt.target.nodeName == "TEXTAREA" || evt.target.isContentEditable) {
+
       return;
     }
 
@@ -44,6 +43,7 @@
     }
   }
 
+
   function init() {
 
     // Use additional criteria to limit chances of incorrect matching of words starting with 'prev'
@@ -54,6 +54,7 @@
     const next = $xf("//a[contains(translate(.,'NEXT','next'),'next')]");
 
     if (prev || next) {
+
       window.addEventListener("keyup", navigatePage.bind(null, prev, next));
     }
   }
