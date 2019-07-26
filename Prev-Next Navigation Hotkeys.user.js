@@ -4,7 +4,7 @@
 // @namespace   https://github.com/mimakyure
 // @author      mimakyure
 // @version     1.0.0
-// @grant       none
+// @grant       GM.openInTab 
 // @match       https://*/*
 // @match       http://*/*
 // @homepageURL https://github.com/mimakyure/Userscripts
@@ -30,15 +30,17 @@
       return;
     }
 
+    const nav = evt.ctrlKey ? href => GM.openInTab(href) : href => window.location = href;
+
     // Left arrow pressed
     if (evt.keyCode == 37 && prev) {
 
-      window.location = prev.href;
+      nav(prev.href);
 
     // Right arrow pressed
     } else if (evt.keyCode == 39 && next) {
 
-      window.location = next.href;
+      nav(next.href);
     }
   }
 
