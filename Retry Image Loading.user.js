@@ -158,15 +158,6 @@
   }
 
 
-  // Cleanup after image load
-  function loadHandler(evt) {
-
-    const img = this;
-
-    img.removeEventListener("error", reloadImg);
-    img.removeEventListener("load", loadHandler);
-  }
-
   // Place menu in a convenient location
   function positionMenu() {
 
@@ -189,6 +180,12 @@
   // Not sure what a good UI would be for this...
   function addReloadMenu(img) {
 
+    // Add helper menu only on larger images
+    if (img.height*img.width < 40000 || (img.nextSibling && img.nextSibling.className == `${NS}-menu`)) {
+
+      return;
+    }
+
     const menu = document.createElement("div");
     menu.className = `${NS}-menu`;
     menu.innerHTML =
@@ -203,28 +200,41 @@
                   this.parentNode.style.visibility = 'hidden';"/>`;
 
     img.parentNode.insertBefore(menu, img.nextSibling);
+
+    // Handle menu visibility
+    img.addEventListener("mouseout", unhideMenu);
+    img.addEventListener("mouseover", positionMenu);
   }
 
 
-  // Add image reload enhancements
+  // Respond to image load error
+  function errorHandler(evt) {
+
+    reloadImg.call(evt.currentTarget);
+    addReloadMenu(evt.currentTarget);
+  }
+
+
+  // Followup after successful load
+  function loadHandler(evt) {
+
+    const img = evt.currentTarget;
+
+    addReloadMenu(img);
+
+    img.removeEventListener("error", errorHandler);
+    img.removeEventListener("load", loadHandler);
+  }
+
+
+  // Monitor image loading to run reload enhancements
   function processImages(imgs) {
 
-    for (const img of imgs) {
+    imgs.filter(img => !img.complete).forEach(img => {
 
-      // Add helper to manually reload images
-      addReloadMenu(img);
-
-      // Handle menu visibility
-      img.addEventListener("mouseout", unhideMenu);
-      img.addEventListener("mouseover", positionMenu);
-
-      // Attempt to reload images if a load error occurs
-      if (!img.complete) {
-
-        img.addEventListener("error", reloadImg);
-        img.addEventListener("load", loadHandler);
-      }
-    }
+      img.addEventListener("error", errorHandler);
+      img.addEventListener("load", loadHandler);
+    });
   }
 
 
@@ -234,7 +244,7 @@
     // Track and display count of reloading images
     initNotification();
 
-    const imgs = document.getElementsByTagName("img");
+    const imgs = Array.from(document.getElementsByTagName("img"));
 
     // Style menu appearance
     addStyle(img.length);
