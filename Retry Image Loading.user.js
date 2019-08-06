@@ -17,7 +17,6 @@
    Another script to compensate for my poor internet connection.
 
    TODO:
-   - Notify while trying auto-reload (allow cancel)
    - Add toggle to hide menu
    - Smaller menu appearance until hovered
  */
@@ -27,8 +26,32 @@
   const NS = "gm-retry-image-loading";
 
 
+  // Attach a self-removing event listener
+  function addListener(elm, types_str, callback) {
+
+    // Handle multiple event types
+    const types = types_str.split(" ");
+
+    const cb = evt => {
+
+      callback(evt);
+
+      types.forEach(type => {
+
+        elm.removeEventListener(type, cb);
+      });
+    };
+
+    types.forEach(type => {
+
+      elm.addEventListener(type, cb);
+    });
+
+  }
+
+
   // Add CSS to the page
-  function addStyle() {
+  function addStyle(img_count) {
 
     const style = document.createElement("style");
 
@@ -55,15 +78,82 @@
        }
        .${NS}-menu + input:hover {
          background-color: darkslategray;
+       }
+       #${NS}-notify:before {
+         content:    'Reloading images: ';
+       }
+       #${NS}-notify:after {
+         content: ' / ${img_count}';
        }`;
 
     document.head.appendChild(style);
   }
 
 
+  // Hide count of auto-reloading items
+  function hideNotification() {
+
+    hideNotification.tid = setTimeout(() => {
+
+      const notify = document.getElementById(`${NS}-notify`);
+      notify.style.height     = 0;
+      notify.style.visibility = "hidden";
+
+    }, 3000);
+  }
+
+
+  // Make visible count of reloading images
+  function showNotification(count) {
+
+    clearTimeout(hideNotification.tid);
+
+    const notify = document.getElementById(`${NS}-notify`);
+    notify.textContent      = count;
+    notify.style.height     = "";
+    notify.style.visibility = "visible";
+
+    if (!count) {
+
+      hideNotification();
+    }
+  }
+
+
+  // Update acount of auto-reloading items
+  function updateNotification(inc) {
+
+    updateNotification.count += inc;
+    showNotification(updateNotification.count);
+  }
+
+
+  // Setup notification of current image reload count
+  function initNotification() {
+
+    const notify = document.createElement("div");
+    notify.id = `${NS}-notify`;
+    notify.textContent = "0";
+    notify.setAttribute("style", "position: fixed; top: 0; right: 0; height: 0; padding: 5px; visibility: hidden; background: black; opacity: 0.5;");
+
+    document.body.appendChild(notify);
+
+    updateNotification.count = 0;
+  }
+
+
+  // Update indicators to show reload completed
+  function finishLoad(evt) {
+
+    updateNotification(-1);
+  }
+
+
   // Attempt to reload image data by refreshing src attribute
   function reloadImg() {
 
+    updateNotification(1);
+    addListener(img, "load error", finishLoad);
     this.src = this.src;
   }
 
@@ -117,9 +207,7 @@
 
 
   // Add image reload enhancements
-  function processImages() {
-
-    const imgs = document.getElementsByTagName("img");
+  function processImages(imgs) {
 
     for (const img of imgs) {
 
@@ -143,10 +231,15 @@
   // Setup
   function init() {
 
-    // Style menu appearance
-    addStyle();
+    // Track and display count of reloading images
+    initNotification();
 
-    processImages();
+    const imgs = document.getElementsByTagName("img");
+
+    // Style menu appearance
+    addStyle(img.length);
+
+    processImages(imgs);
   }
 
   init();
