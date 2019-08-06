@@ -28,10 +28,35 @@
 
 
   // Add CSS to the page
-  function addStyle(css) {
+  function addStyle() {
 
     const style = document.createElement("style");
-    style.textContent = css;
+
+    style.textContent =
+      `.${NS}-menu {
+         visibility: hidden;
+         opacity: 0.3;
+         position: absolute;
+         background-color: black;
+         color: white;
+         z-index: 10;
+         font-size: 10pt;
+       }
+       img:hover + .${NS}-menu {
+         visibility: visible;
+       }
+        .${NS}-menu:hover {
+         visibility: visible;
+         opacity: 1;
+       }
+       .${NS}-menu > input {
+         display: block;
+         width: 100%;
+       }
+       .${NS}-menu + input:hover {
+         background-color: darkslategray;
+       }`;
+
     document.head.appendChild(style);
   }
 
@@ -119,29 +144,7 @@
   function init() {
 
     // Style menu appearance
-    addStyle(`.${NS}-menu {
-                visibility: hidden;
-                opacity: 0.3;
-                position: absolute;
-                background-color: black;
-                color: white;
-                z-index: 10;
-                font-size: 10pt;
-              }
-              img:hover + .${NS}-menu {
-                visibility: visible;
-              }
-              .${NS}-menu:hover {
-                visibility: visible;
-                opacity: 1;
-              }
-              .${NS}-menu > input {
-                display: block;
-                width: 100%;
-              }
-              .${NS}-menu + input:hover {
-                background-color: darkslategray;
-              }`);
+    addStyle();
 
     processImages();
   }
