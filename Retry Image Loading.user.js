@@ -3,7 +3,7 @@
 // @description Automatically tries to reload an image when a load error occurs. Also adds menu for image reloading.
 // @namespace   https://github.com/mimakyure
 // @author      mimakyure
-// @version     1.0.0
+// @version     1.1.0
 // @grant       none
 // @match       https://*/*
 // @match       http://*/*
@@ -272,13 +272,34 @@
 
 
   // Place menu in a convenient location
-  function positionMenu() {
+  function positionMenu(evt) {
 
-    const img = this;
+    const img = evt.currentTarget;
     const menu = img.nextSibling;
 
-    menu.style.top = img.offsetTop + "px";
-    menu.style.left = img.offsetLeft + "px";
+    // Use existence of top rule to determine if menu should be positioned
+    if (menu.style.top) {
+
+      return;
+    }
+
+    // Offset menu vertically from mouse position, ensuring menu remains at furthest adjacent to image boundary
+    const btm = img.offsetTop + img.offsetHeight;
+    menu.style.top = Math.min(evt.pageY + Math.min(10, btm - evt.pageY),
+                              btm - Math.min(menu.offsetHeight*2, img.offsetHeight)) + "px";
+
+    // Closer to right, align right
+    if (evt.offsetX > img.width/2) {
+
+      menu.style.left = "";
+      menu.style.right = img.offsetParent.offsetWidth - (img.offsetLeft + img.width) + "px";
+
+    // Closer to left, align left
+    } else {
+
+      menu.style.right = "";
+      menu.style.left = img.offsetLeft + "px";
+    }
   }
 
 
