@@ -145,16 +145,60 @@
   // Update indicators to show reload completed
   function finishLoad(evt) {
 
+    const img = evt.currentTarget;
+
+    img.removeAttribute(`${NS}-reloading`);
+
+    // Override in-page hiding of unloaded images when reloading done
+    if (img.style.display == "none") {
+
+      img.style.display = "";
+    }
+    img.style.visibilty = "";
+
     updateNotification(-1);
   }
 
 
-  // Attempt to reload image data by refreshing src attribute
-  function reloadImg() {
 
+  // Re-set src attribute on img element to trigger reloading of data
+  function refreshSrc(img) {
+
+    // Check if reload already triggered on this img
+    if (img.hasAttribute(`${NS}-reloading`)) {
+
+      return;
+    }
+
+    // Perform reloading
+    img.setAttribute(`${NS}-reloading`, "");
     updateNotification(1);
     addListener(img, "load error", finishLoad);
-    this.src = this.src;
+
+    img.src = img.src;
+  }
+
+
+  // Attempt to reload image data by refreshing src attribute
+  function reloadImg(delay = 0) {
+
+    // Use delay to avoid constant reloading on lost connection
+    setTimeout(refreshSrc.bind(null, this), delay);
+
+    // Hide menu button after clicked
+    this.nextSibling.style.display = "none";
+    return false;
+  }
+
+
+  // Reload all images on the page
+  function reloadAllImg() {
+
+    document.querySelectorAll('img').forEach(refreshSrc);
+
+    // Hide menu button after clicked
+    this.style.display = "none";
+    return false;
   }
 
 
@@ -210,7 +254,7 @@
   // Respond to image load error
   function errorHandler(evt) {
 
-    reloadImg.call(evt.currentTarget);
+    reloadImg.call(evt.currentTarget, 3000);
     addReloadMenu(evt.currentTarget);
   }
 
