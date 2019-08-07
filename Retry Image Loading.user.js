@@ -16,10 +16,9 @@
 /* Comments:
    Another script to compensate for my poor internet connection.
 
-   TODO:
-   - Add toggle to hide menu
-   - Smaller menu appearance until hovered
+   May need to do more to ensure styles aren't overridden by existing ones.
  */
+
 
 (() => {
 
@@ -50,38 +49,54 @@
   }
 
 
-  // Add CSS to the page
-  function addStyle(img_count) {
+  // Add psuedo-selector/element related CSS to the page
+  function addStyle(btn_height, img_count) {
 
     const style = document.createElement("style");
 
     style.textContent =
       `.${NS}-menu {
+         opacity:    0.5;
+       }
+
+       .${NS}-menu > div {
          visibility: hidden;
-         opacity: 0.3;
-         position: absolute;
-         background-color: black;
-         color: white;
-         z-index: 10;
-         font-size: 10pt;
        }
-       img:hover + .${NS}-menu {
+
+       .${NS}-menu > div:first-child {
+         height:     ${btn_height}px;
+         width:      ${btn_height + 4}px;
+       }
+
+       .${NS}-menu > div > button {
+         height:     0;
+         width:      ${btn_height + 4}px;
+         background: black;
+       }
+
+       img:hover + .${NS}-menu > div:first-child,
+       .${NS}-menu:hover > div:last-child > button {
+         height:     ${btn_height}px;
+         width:      100%;
          visibility: visible;
        }
-        .${NS}-menu:hover {
-         visibility: visible;
-         opacity: 1;
+
+       .${NS}-menu:hover {
+         opacity:    1;
        }
-       .${NS}-menu > input {
-         display: block;
-         width: 100%;
+
+       .${NS}-menu:hover > div:first-child {
+         height:     0;
        }
-       .${NS}-menu + input:hover {
-         background-color: darkslategray;
+
+       .${NS}-menu > div > button:hover {
+         background: DarkSlateGray;
        }
+
        #${NS}-notify:before {
          content:    'Reloading images: ';
        }
+
        #${NS}-notify:after {
          content: ' / ${img_count}';
        }`;
@@ -202,6 +217,30 @@
   }
 
 
+  // Create menu for reloading image src
+  function createMenu(img) {
+
+    // Set rules directly on elements to help ensure desired styling
+    const css = {"shared": "color: white; text-align: center; border: none; border-radius: 0; margin: 0;display: block; box-shadow: none; min-height: 0;",
+                 "toggle": `padding: 0; background: black; font-size: ${createMenu.btn_height}px; line-height: ${createMenu.btn_height}px;`,
+                 "button": `padding: 0 5px; font-size: 14px;`};
+
+    const menu = document.createElement("div");
+    menu.className = `${NS}-menu`;
+    menu.setAttribute("style", "position: absolute; z-index: 10;");
+    menu.innerHTML = `<div style="${css.shared + css.toggle}">&#183;&#183;&#183;</div>
+                      <div>
+                        <button type="button" title="Reload Image" style="${css.shared + css.button}">Reload Image</button>
+                        <button type="button" title="Reload All Images" style="${css.shared + css.button}">Reload All Images</button>
+                      </div>`;
+
+    menu.lastChild.firstElementChild.addEventListener("click", reloadImg.bind(img));
+    menu.lastChild.lastElementChild.addEventListener("click", reloadAllImg.bind(menu));
+
+    return menu;
+  }
+
+
   // Place menu in a convenient location
   function positionMenu() {
 
@@ -230,19 +269,7 @@
       return;
     }
 
-    const menu = document.createElement("div");
-    menu.className = `${NS}-menu`;
-    menu.innerHTML =
-      `<input type="button" value="Reload Image"
-         onclick="const img = this.parentNode.previousSibling;
-                  img.src = img.src;
-                  this.parentNode.style.visibility = 'hidden';"/>
-       <input type="button" value="Reload All Images"
-         onclick="document.querySelectorAll('img').forEach(img => {
-                    img.src = img.src;
-                  });
-                  this.parentNode.style.visibility = 'hidden';"/>`;
-
+    const menu = createMenu(img);
     img.parentNode.insertBefore(menu, img.nextSibling);
 
     // Handle menu visibility
@@ -285,13 +312,17 @@
   // Setup
   function init() {
 
+    // Run some initializations
+    const btn_height = 24;
+    createMenu.btn_height =  btn_height;
+
     // Track and display count of reloading images
     initNotification();
 
     const imgs = Array.from(document.getElementsByTagName("img"));
 
-    // Style menu appearance
-    addStyle(img.length);
+    // Configure and add styles for created elements
+    addStyle(btn_height, imgs.length);
 
     processImages(imgs);
   }
