@@ -241,6 +241,36 @@
   }
 
 
+  // Reset menu display and position for future reveal when mouse leaves image
+  function leaveImage(evt) {
+
+    const menu = evt.currentTarget.nextSibling;
+
+    menu.style.display = "";
+
+    // Mouse did not move from image to menu
+    if (evt.relatedTarget.offsetParent != menu) {
+
+      menu.style.top = "";
+    }
+  }
+
+
+  // Reset menu display and position for future reveal when mouse leaves menu
+  function leaveMenu(evt) {
+
+    const menu = evt.currentTarget;
+
+    menu.style.display = "";
+
+    // Mouse did not move from menu to image
+    if (evt.relatedTarget != menu.previousSibling) {
+
+      menu.style.top = "";
+    }
+  }
+
+
   // Place menu in a convenient location
   function positionMenu() {
 
@@ -252,15 +282,7 @@
   }
 
 
-  // Make menu visible if it was temporarily hidden after performing a reload
-  function unhideMenu() {
-
-    this.nextSibling.style.visibility = "";
-  }
-
-
-  // Create image menu for reloading src
-  // Not sure what a good UI would be for this...
+  // Add reloading menu to targeted images
   function addReloadMenu(img) {
 
     // Add helper menu only on larger images
@@ -272,8 +294,9 @@
     const menu = createMenu(img);
     img.parentNode.insertBefore(menu, img.nextSibling);
 
-    // Handle menu visibility
-    img.addEventListener("mouseout", unhideMenu);
+    // Handle menu visibility and positioning
+    img.addEventListener("mouseout", leaveImage);
+    menu.addEventListener("mouseleave", leaveMenu);
     img.addEventListener("mouseover", positionMenu);
   }
 
