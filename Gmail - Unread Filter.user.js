@@ -88,6 +88,8 @@
     return rules;
   }
 
+  // Encode for URI hash component
+  const hashEncode = str => encodeURIComponent(str).replace("%20", "+");
 
   // Label filtering ===========================================================
 
@@ -267,10 +269,41 @@
            /\bis:(?:un)?read\b/.test(decodeURIComponent(hash[1]));
   }
 
-  // Don't filter spam folder since GMail adds special commands for this folder
+  // Don't filter folders Gmail handles specially
   function shouldEmailFilter() {
 
-    return !/#spam/.test(location.hash);
+    // These were the only two that I could find
+    return !/#spam|#settings/.test(location.hash);
+  }
+
+  // Determine search parameter for label
+  function hashToSearch(hash) {
+
+    let lbl_str = "";
+
+    switch (hash) {
+
+      case "#label":
+
+        lbl_str = "label:";
+        break;
+
+      case "#imp":
+
+        lbl_str = "is:important";
+        break;
+
+      case "#starred":
+
+        lbl_str = "is:starred";
+        break;
+
+      default:
+
+        lbl_str = hash.replace("#", "in:");
+    }
+
+    return lbl_str
   }
 
   // Add search term for unread emails
@@ -281,52 +314,69 @@
     if (!hasEmailFilter() && shouldEmailFilter()) {
 
       const hash = location.hash.split("/");
+      let lbl_str = "";
 
-      let fldr_str = "";
+      // Use 'in:'/'is:' handling for special labels
+      if (!/#all|#search/.test(hash[0])) {
 
-      // Use 'in:' handling for special labels
-      if (!/#inbox|#search/.test(hash[0])) {
-
-        fldr_str = (hash[0] == "#label") ?
-                   "label:" : `${hash[0].replace("#", "in:")} `;
+        lbl_str = hashToSearch(hash[0]);
       }
 
-      const srch_str = `${fldr_str}${hash[1] ? `${hash[1]} ` : ""}is:unread`;
+      // #label or #search will have additional hash parameters
+      const srch_str = `${lbl_str}${hash[1] || ""} is:unread`;
 
-      location.hash = `#search/${srch_str}`;
+      location.hash = `#search/${hashEncode(srch_str)}`;
     }
+  }
+
+  // Convert search terms into hash
+  function searchToHash(srch_str) {
+
+    let new_hash;
+
+    // Handle labels
+    // This does not account for grouping operators {}()
+    if (!/\s/.test(srch_str) && /^(label|in|is):([^\s]+$)/.test(srch_str)) {
+
+      // Normal labels
+      if (RegExp.$1 === "label") {
+
+        new_hash = srch_str.replace("label:", "#label/");
+
+      // Extra special label
+      } else if (RegExp.$2 === "important") {
+
+        new_hash = "#imp";
+
+      // Other special labels
+      } else {
+
+        new_hash = `#${RegExp.$2}`;
+      }
+
+    } else {
+
+      // Modify search
+      new_hash = `#search/${hashEncode(srch_str)}`;
+    }
+
+    return new_hash;
   }
 
   // Remove unread emails search parameter
   function removeEmailFilter() {
 
-    const hash = location.hash.split("/");
+    if (hasEmailFilter()) {
 
-    // Go back to inbox if no search query
-    let new_hash = "#inbox";
+      $id(`${NS}-status`).checked = false;
 
-    $id(`${NS}-status`).checked = false;
-    email_active = false;
-
-    // View has a search string
-    if (hash[1]) {
-
-      const hash1 = decodeURIComponent(hash[1]).
+      // Remove unread filter
+      // hash[1] will always exist if filter is being removed
+      const hash1 = decodeURIComponent(location.hash.split("/")[1]).
                     replace(/\bis:unread\b/, "").replace(/\+/g, " ").trim();
 
-      // Handle special folders
-      if (/in:(snoozed|spam|drafts|starred)/.test(hash1)) {
-
-        new_hash = `#${RegExp.$1}`;
-
-      // Modify search
-      } else {
-
-        new_hash = `${hash[0]}/${encodeURIComponent(hash1)}`;
-      }
+      location.hash = hash1 ? searchToHash(hash1) : "#inbox";
     }
-
-    location.hash = new_hash;
   }
 
   // Check if filter has been manually deleted
@@ -350,6 +400,7 @@
 
       addEmailFilter();
     }
+
   }
 
   // Watch for changes in page to actively persist filter
