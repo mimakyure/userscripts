@@ -3,7 +3,7 @@
 // @description Add controls to filter for unread emails and labels
 // @namespace   https://github.com/mimakyure
 // @author      mimakyure
-// @version     2.0.1
+// @version     2.1.0
 // @grant       none
 // @match       https://mail.google.com/*
 // @homepageURL https://github.com/mimakyure/Userscripts
@@ -426,6 +426,12 @@
     } else {
 
       removeEmailFilter();
+    }
+
+    // Handle clicks on button or label
+    if (evt.target != $id(`${NS}-status`)) {
+
+      evt.preventDefault();
     }
   }
 
