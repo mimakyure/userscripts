@@ -380,17 +380,16 @@
   // Setup
   function init() {
 
-    // Run some initializations
     const btn_height = 24;
-    createMenu.btn_height =  btn_height;
-
-    // Track and display count of reloading images
-    initNotification();
-
     const imgs = Array.from(document.getElementsByTagName("img"));
 
-    // Configure and add styles for created elements
+
+    createMenu.btn_height = btn_height;
+
     addStyle(btn_height, imgs.length);
+
+    initNotification();
+
 
     processImages(imgs);
   }
