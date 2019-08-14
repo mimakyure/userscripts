@@ -93,12 +93,16 @@
          background: DarkSlateGray;
        }
 
-       #${NS}-notify:before {
+       #${NS}-notify.${NS}-reloading:before {
          content:    'Reloading images: ';
        }
 
-       #${NS}-notify:after {
-         content: ' / ${img_count}';
+       #${NS}-notify.${NS}-reloading:after {
+         content:    ' / ${img_count}';
+       }
+
+       #${NS}-notify.${NS}-offline:before {
+         content:    'Offline: ';
        }`;
 
     document.head.appendChild(style);
@@ -135,10 +139,15 @@
   }
 
 
-  // Update acount of auto-reloading items
+  // Update acount of auto-reloading items or indicate offline status
   function updateNotification(inc) {
 
+    const notify = document.getElementById(`${NS}-notify`);
     updateNotification.count += inc;
+
+    // Change class name to update notification pseudo-element text
+    notify.className = NS + (inc ? "-reloading" : "-offline");
+
     showNotification(updateNotification.count);
   }
 
@@ -175,9 +184,19 @@
   }
 
 
-
   // Re-set src attribute on img element to trigger reloading of data
   function refreshSrc(img) {
+
+    // Perform reloading
+    img.setAttribute(`${NS}-reloading`, "");
+    addListener(img, "load error", finishLoad);
+
+    img.src = img.src;
+  }
+
+
+  // Check if image should be refreshed and initiate action
+  function setRefresh(img) {
 
     // Check if reload already triggered on this img
     if (img.hasAttribute(`${NS}-reloading`)) {
@@ -185,20 +204,25 @@
       return;
     }
 
-    // Perform reloading
-    img.setAttribute(`${NS}-reloading`, "");
     updateNotification(1);
-    addListener(img, "load error", finishLoad);
 
-    img.src = img.src;
+    // Check that at least network connection exists, though maybe not online
+    if (navigator.onLine) {
+
+      refreshSrc(img);
+
+    } else {
+
+      addListener(window, "online", refreshSrc.bind(null, img));
+    }
   }
 
 
   // Attempt to reload image data by refreshing src attribute
   function reloadImg(delay = 0) {
 
-    // Use delay to avoid constant reloading on lost connection
-    setTimeout(refreshSrc.bind(null, this), delay);
+    // Use delay to avoid constant reloading if no internet
+    setTimeout(setRefresh.bind(null, this), delay);
 
     // Hide menu button after clicked
     this.nextSibling.style.display = "none";
@@ -209,7 +233,7 @@
   // Reload all images on the page
   function reloadAllImg() {
 
-    document.querySelectorAll('img').forEach(refreshSrc);
+    document.querySelectorAll('img').forEach(setRefresh);
 
     // Hide menu button after clicked
     this.style.display = "none";
