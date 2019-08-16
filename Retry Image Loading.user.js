@@ -1,24 +1,21 @@
 // ==UserScript==
 // @name        Retry Image Loading
 // @description Automatically tries to reload an image when a load error occurs. Also adds menu for image reloading.
-// @namespace   https://github.com/mimakyure
+// @namespace   https://github.com/mimakyure/
 // @author      mimakyure
-// @version     1.1.0
+// @version     1.2.0
 // @grant       none
 // @match       https://*/*
 // @match       http://*/*
-// @homepageURL https://github.com/mimakyure/Userscripts
-// @supportURL  https://github.com/mimakyure/Userscripts/issues
-// @updateURL   https://raw.github.com/mimakyure/Userscripts/master/Retry Image Loading.user.js
+// @homepageURL https://github.com/mimakyure/userscripts
+// @supportURL  https://github.com/mimakyure/userscripts/issues
+// @updateURL   https://openuserjs.org/meta/mimakyure/Retry_Image_Loading.meta.js
 // @license     MIT
 // ==/UserScript==
 
 /* Comments:
    Another script to compensate for my poor internet connection.
-
-   May need to do more to ensure styles aren't overridden by existing ones.
  */
-
 
 (() => {
 
@@ -321,7 +318,7 @@
   }
 
 
-  // Place menu along inside edge of image near mouse position
+  // Place menu along inside edge of image at level of mouse entry
   function positionMenu(evt) {
 
     const img = evt.currentTarget;
@@ -396,6 +393,7 @@
 
     addReloadMenu(img);
 
+    // Cleanup event listeners
     img.removeEventListener("error", errorHandler);
     img.removeEventListener("load", loadHandler);
   }
