@@ -115,7 +115,7 @@
     hideNotification.tid = setTimeout(() => {
 
       const notify = document.getElementById(`${NS}-notify`);
-      notify.style.height     = 0;
+      notify.style.height     = "0";
       notify.style.visibility = "hidden";
 
     }, 3000);
@@ -158,7 +158,16 @@
     const notify = document.createElement("div");
     notify.id = `${NS}-notify`;
     notify.textContent = "0";
-    notify.setAttribute("style", "position: fixed; top: 0; right: 0; height: 0; padding: 5px; visibility: hidden; background: black; opacity: 0.5;");
+    notify.style.cssText = `position:   fixed;
+                            top:        0;
+                            right:      0;
+                            height:     0;
+                            padding:    5px;
+                            visibility: hidden;
+                            background: black;
+                            color:      white;
+                            opacity:    0.5;
+                            z-index:    10;`;
 
     document.body.appendChild(notify);
 
@@ -245,21 +254,38 @@
   function createMenu(img) {
 
     // Set rules directly on elements to help ensure desired styling
-    const css = {"shared": "color: white; text-align: center; border: none; border-radius: 0; margin: 0;display: block; box-shadow: none; min-height: 0;",
-                 "toggle": `padding: 0; background: black; font-size: ${createMenu.btn_height}px; line-height: ${createMenu.btn_height}px;`,
-                 "button": `padding: 0 5px; font-size: 14px;`};
+    const css = {"shared": `color:         white;
+                            text-align:    center;
+                            border:        none;
+                            border-radius: 0;
+                            margin:        0;
+                            display:       block;
+                            box-shadow:    none;
+                            min-height:    0;`,
+                 "toggle": `padding:       0;
+                            background:    black;
+                            font-size:     ${createMenu.btn_height}px;
+                            line-height:   ${createMenu.btn_height}px;`,
+                 "button": `padding:       0 5px;
+                            font-size:     14px;`};
 
     const menu = document.createElement("div");
     menu.className = `${NS}-menu`;
-    menu.setAttribute("style", "position: absolute; z-index: 10;");
-    menu.innerHTML = `<div style="${css.shared + css.toggle}">&#183;&#183;&#183;</div>
-                      <div>
-                        <button type="button" title="Reload Image" style="${css.shared + css.button}">Reload Image</button>
-                        <button type="button" title="Reload All Images" style="${css.shared + css.button}">Reload All Images</button>
-                      </div>`;
+    menu.style.cssText = `position: absolute;
+                          z-index:n 10;`;
+    menu.innerHTML =
+        `<div style="${css.shared + css.toggle}">&#183;&#183;&#183;</div>
+         <div>
+           <button type="button" title="Reload Image"
+               style="${css.shared + css.button}">Reload Image</button>
+           <button type="button" title="Reload All Images"
+               style="${css.shared + css.button}">Reload All Images</button>
+         </div>`;
 
-    menu.lastChild.firstElementChild.addEventListener("click", reloadImg.bind(img));
-    menu.lastChild.lastElementChild.addEventListener("click", reloadAllImg.bind(menu));
+    menu.lastChild.firstElementChild.
+        addEventListener("click", reloadImg.bind(img));
+    menu.lastChild.lastElementChild.
+        addEventListener("click", reloadAllImg.bind(menu));
 
     return menu;
   }
@@ -313,8 +339,9 @@
     const img_box = img.getBoundingClientRect();
     const img_btm = parent_top + img.offsetTop + img_box.height;
 
-    const menu_top = Math.min(evt.pageY - parent_top + Math.min(10, img_btm - evt.pageY),
-                              img_btm - Math.min(menu.offsetHeight*2, img_box.height));
+    const menu_top = Math.min(
+        evt.pageY - parent_top + Math.min(10, img_btm - evt.pageY),
+        img_btm - Math.min(menu.offsetHeight*2, img_box.height));
 
     menu.style.top = Math.round(menu_top) + "px";
 
@@ -338,13 +365,14 @@
   function addReloadMenu(img) {
 
     // Add helper menu only on larger images
-    if (img.height*img.width < 40000 || (img.nextSibling && img.nextSibling.className == `${NS}-menu`)) {
+    if (img.height*img.width < 40000 ||
+        (img.nextSibling && img.nextSibling.className == `${NS}-menu`)) {
 
       return;
     }
 
     const menu = createMenu(img);
-    img.parentNode.insertBefore(menu, img.nextSibling);
+    img.insertAdjacentElement("afterend", menu);
 
     // Handle menu visibility and positioning
     img.addEventListener("mouseout", leaveImage);
