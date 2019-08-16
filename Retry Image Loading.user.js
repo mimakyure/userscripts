@@ -295,28 +295,35 @@
   }
 
 
-  // Place menu in a convenient location
+  // Place menu along inside edge of image near mouse position
   function positionMenu(evt) {
 
     const img = evt.currentTarget;
     const menu = img.nextSibling;
 
-    // Use existence of top rule to determine if menu should be positioned
+    // CSS top rule presence used to signal if menu should be repositioned
     if (menu.style.top) {
 
       return;
     }
 
-    // Offset menu vertically from mouse position, ensuring menu remains at furthest adjacent to image boundary
-    const btm = img.offsetTop + img.offsetHeight;
-    menu.style.top = Math.min(evt.pageY + Math.min(10, btm - evt.pageY),
-                              btm - Math.min(menu.offsetHeight*2, img.offsetHeight)) + "px";
+    const parent_box = img.offsetParent.getBoundingClientRect();
+    const parent_top = window.pageYOffset + parent_box.top;
+
+    const img_box = img.getBoundingClientRect();
+    const img_btm = parent_top + img.offsetTop + img_box.height;
+
+    const menu_top = Math.min(evt.pageY - parent_top + Math.min(10, img_btm - evt.pageY),
+                              img_btm - Math.min(menu.offsetHeight*2, img_box.height));
+
+    menu.style.top = Math.round(menu_top) + "px";
+
 
     // Closer to right, align right
-    if (evt.offsetX > img.width/2) {
+    if (evt.pageX > window.pageXOffset + img_box.left + img_box.width/2) {
 
       menu.style.left = "";
-      menu.style.right = img.offsetParent.offsetWidth - (img.offsetLeft + img.width) + "px";
+      menu.style.right = parent_box.width - (img.offsetLeft + img.width) + "px";
 
     // Closer to left, align left
     } else {
